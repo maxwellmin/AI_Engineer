@@ -51,99 +51,60 @@
 
 ### 基础设施
 - **容器化**: Docker + Docker Compose
-- **开发用基础设施信息**: ./dev_utils/* docker-compose.yml README.md
+- **开发用基础设施信息**: `dev_utils/*` docker-compose.yml README.md
 - **开发环境基础设施操作**： 尽量人工自行操作，意见系统组件和端口冲突，claude console操作尽量和人工确认
 
 
+## 技术架构
 
-**架构：** 领域驱动设计（按业务领域划分应用）。API 层基于 DRF 实现，异步任务基于 Celery 实现，测试基于 pytest 实现。所有接口均返回 JSON 格式数据——不涉及模板渲染。
+### 架构文档
+- 详细的架构设计文档位于 `docs/architecture.md`，包含系统组件、数据流、API设计、数据库模型等内容。
+- 项目参考：
+  - https://github.com/stttt2003pk/medical-rag/blob/main/src/MedicalRag/rag/MultiDialogueRag.py
+  - https://github.com/stttt2003pk/What-to-eat-today
+  - `docs/reference.md` 中包含了相关技术的参考资料和最佳实践链接。
 
-## 核心规范
-
-### Python 编码约定
-
-- 所有函数签名必须添加类型注解 — 需引入 `from __future__ import annotations`
-- 禁止使用 `print()` 语句 — 统一使用 `logging.getLogger(__name__)` 记录日志
-- 字符串格式化使用 f-string，禁止使用 `%` 或 `.format()`
-- 文件操作使用 `pathlib.Path`，禁止使用 `os.path`
-- 导入语句按 isort 规则排序：标准库 → 第三方库 → 本地模块（由 ruff 强制校验）
-
-### 数据库规范
-
-- 所有数据库查询使用 Django ORM — 仅在必要时通过 `.raw()` 使用参数化查询的原生 SQL
-- 数据库迁移文件需提交至 git — 生产环境禁止使用 `--fake` 参数
-- 使用 `select_related()` 和 `prefetch_related()` 避免 N+1 查询问题
-- 所有模型必须包含 `created_at` 和 `updated_at` 自动字段
-- 所有用于 `filter()`、`order_by()` 或 `WHERE` 子句的字段需添加索引
-
-```python
-# 不良示例：N+1 查询
-orders = Order.objects.all()
-for order in orders:
-    print(order.customer.name)  # 每个订单都会触发一次数据库查询
-
-# 良好示例：关联查询（仅一次数据库请求）
-orders = Order.objects.select_related("customer").all()
+### 项目架构图
+```
+┌────────────────────────────────────────────────────────────┐
+│                         test tool                          │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
+│  │     curl     │  │     wcat     │  │  post man    │      │
+│  └──────────────┘  └──────────────┘  └──────────────┘      │
+└────────────┬────────────────┬────────────────┬─────────────┘
+             │ WebSocket      │ HTTP           │ HTTP
+             │                │                │
+┌────────────▼────────────────▼────────────────▼──────────────┐
+│                    Django Backend                            │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │            Django Channels (WebSocket)               │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │          Django REST Framework (REST API)            │   │
+│  └──────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │              RAG Processing Pipeline                 │   │
+│  │   Query → Embedding → Vector Search → Context        │   │
+│  │   Assembly → LLM Generation → Response               │   │
+│  └──────────────────────────────────────────────────────┘   │
+└────┬──────────────┬──────────────┬──────────────┬───────────┘
+     │              │              │              │
+     ▼              ▼              ▼              ▼
+┌─────────┐  ┌──────────┐  ┌──────────┐  ┌──────────────┐
+│PostgreSQL│ │  Milvus  │  │  Neo4j   │  │ QWEN API     │
+│ (主数据) │  │ (向量库)  │  │ (知识图)  │  │ (LLM+Embed)  │
+└─────────┘  └──────────┘  └──────────┘  └──────────────┘
 ```
 
-### 认证规范
-
-- 基于 `djangorestframework-simplejwt` 实现 JWT 认证 — 访问令牌（15 分钟）+ 刷新令牌（7 天）
-- 所有视图必须显式指定权限类 — 禁止依赖默认权限配置
-- 基础权限使用 `IsAuthenticated`，对象级别的访问控制需自定义权限类
-- 登出功能需启用令牌黑名单机制
-
-### 序列化器规范
-
-- 简单 CRUD 操作使用 `ModelSerializer`，复杂校验场景使用 `Serializer`
-- 输入/输出数据结构不同时，拆分读/写序列化器
-- 校验逻辑放在序列化器层实现，视图层保持轻量
-
-```python
-class CreateOrderSerializer(serializers.Serializer):
-    product_id = serializers.UUIDField()
-    quantity = serializers.IntegerField(min_value=1, max_value=100)
-
-    def validate_product_id(self, value):
-        if not Product.objects.filter(id=value, active=True).exists():
-            raise serializers.ValidationError("商品不存在或已下架")
-        return value
-
-class OrderDetailSerializer(serializers.ModelSerializer):
-    customer = CustomerSerializer(read_only=True)
-    product = ProductSerializer(read_only=True)
-
-    class Meta:
-        model = Order
-        fields = ["id", "customer", "product", "quantity", "total", "status", "created_at"]
-```
-
-### 异常处理规范
-
-- 使用 DRF 异常处理器保证错误响应格式统一
-- 业务逻辑相关的自定义异常放在 `core/exceptions.py` 中
-- 禁止向客户端暴露内部错误详情
-
-```python
-# core/exceptions.py
-from rest_framework.exceptions import APIException
-
-class InsufficientStockError(APIException):
-    status_code = 409
-    default_detail = "库存不足，无法创建订单"
-    default_code = "insufficient_stock"
-```
-
-### 代码风格规范
-
-- 代码和注释中禁止使用表情符号
-- 最大行长度：120 个字符（由 ruff 强制校验）
-- 命名规范：类使用 PascalCase，函数/变量使用 snake_case，常量使用 UPPER_SNAKE_CASE
-- 视图层保持轻量 — 业务逻辑放在服务函数或模型方法中
-
-## 文件结构
+## 项目目录架构
 
 ```
+dev_utils/               # 开发环境工具
+  docker-compose.yml     # Docker 容器配置
+docs/
+  architecture.md        # 架构设计文档
+  reference.md           # 参考资料
+  BM25_procedure.md       # BM25 相关设计文档
 config/
   settings/
     base.py              # 通用配置
@@ -156,22 +117,67 @@ apps/
     models.py
     serializers.py
     views.py
-    services.py          # 业务逻辑层
-    tests/
-      test_views.py
-      test_services.py
-      factories.py       # Factory Boy 工厂类
-  orders/                # 订单管理
+    services.py
+  documents_parser/      # 文档解析和处理
     models.py
     serializers.py
     views.py
     services.py
-    tasks.py             # Celery 异步任务
+    meta_management      # 用于维护文档元数据，如文档ID，文档名称，文档路径，文档创建时间，文档更新时间，文档大小，文档类型，文档状态等。
+    parser
+    deduplication        # 用于文档去重，避免重复上传同一文档
     tests/
-  products/              # 商品目录
+  document_pipeline_manager/      # 文档处理流水线管理的管理器
     models.py
     serializers.py
     views.py
+    services.py
+    pipelines            # 文档处理流水线
+    tests/
+  milvus_database_controller/      # Milvus 数据库控制器，提供向量数据库的增删改查接口
+    models.py
+    serializers.py
+    views.py
+    services.py
+    create_collection # 用于创建向量库，并设置向量库的参数，如向量维度，向量类型，向量索引类型，向量索引参数，向量索引数量等操作
+    insert_data       # 用于向向量库插入数据，并返回插入数据的ID
+    search_data       # 用于向向量库搜索数据，并返回搜索结果
+    delete_data       # 用于向向量库删除数据，并返回删除数据的ID
+    tests/
+  neo4j_database_controller/      # Neo4j 数据库控制器，提供图数据库的增删改查接口
+    models.py
+    serializers.py
+    views.py
+    services.py
+    create_node                   # 用于创建知识图谱节点，并返回创建节点的ID
+    create_relationship           # 用于创建知识图谱关系，并返回创建关系的ID
+    query_node                    # 用于查询知识图谱节点，并返回查询结果
+    query_relationship            # 用于查询知识图谱关系，并返回查询结果
+    delete_node                   # 用于删除知识图谱节点，并返回删除节点的ID
+    delete_relationship           # 用于删除知识图谱关系，并返回删除关系的ID
+    update_node                   # 用于更新知识图谱节点，并返回更新节点的ID
+    update_relationship           # 用于更新知识图谱关系，并返回更新关系的ID
+    tests/
+  embedding_engine/
+    models.pymodels.py
+    serializers.py
+    views.py
+    services.py
+    sentence_transformer          # 用于将文本转换为向量，并返回向量
+    qwen_api                      # 千问的api封装
+    embedding_management          # 用于管理向量，包括向量的创建，更新，删除，查询等操作。结合postgreSQL跟踪记录向量的元数据，如向量ID，向量名称，向量维度，向量类型，向量索引类型，向量索引参数，向量索引数量等，可以快速找到向量的元数据，以及向量库的更新。
+    tests/
+  RAGprocessing/
+    models.py
+    serializers.py
+    views.py
+    services.py
+    rag_pipeline          # RAG 流水线，包括查询、向量搜索、上下文组装、LLM生成等步骤的实现
+    agents/               # 基于langchain和langgraph封装的agent实现，如基于图RAG的agent，基于文本RAG的agent等
+    tests/
+  WebSocket manager/      # WebSocket 管理器，提供 WebSocket 连接管理、消息处理等功能
+    consumers.py
+    routing.py
     tests/
 core/
   exceptions.py          # 自定义 API 异常
@@ -179,141 +185,29 @@ core/
   pagination.py          # 自定义分页
   middleware.py          # 请求日志、耗时统计
   tests/
+tests/                   # 项目级测试（如集成测试、端到端测试等）
+env/                     # 环境配置文件（如 .env.example）
+  .env_local.env         # 本地环境变量配置文件
+  .env_production.env    # 生产环境变量配置文件
+  .env_uat.env           # 测试环境变量配置文件
+pyproject.toml                   # Poetry 配置文件
+README.md                        # 项目简介和快速开始指南
+.env                             # 环境变量配置文件（不提交至 git）
+.gitignore                       # Git 忽略文件
+Manage.py                        # Django 管理命令入口
 ```
 
-## 核心设计模式
+## code style and design patterns
 
-### 服务层模式
+- 请跟随`docs/code_style.md`中的代码规范进行编码
 
-```python
-# apps/orders/services.py
-from django.db import transaction
-
-def create_order(*, customer, product_id: uuid.UUID, quantity: int) -> Order:
-    """创建订单（包含库存校验和支付预扣逻辑）。"""
-    product = Product.objects.select_for_update().get(id=product_id)
-
-    if product.stock < quantity:
-        raise InsufficientStockError()
-
-    with transaction.atomic():
-        order = Order.objects.create(
-            customer=customer,
-            product=product,
-            quantity=quantity,
-            total=product.price * quantity,
-        )
-        product.stock -= quantity
-        product.save(update_fields=["stock", "updated_at"])
-
-    # 异步任务：发送订单确认邮件
-    send_order_confirmation.delay(order.id)
-    return order
-```
-
-### 视图层模式
-
-```python
-# apps/orders/views.py
-class OrderViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
-    pagination_class = StandardPagination
-
-    def get_serializer_class(self):
-        if self.action == "create":
-            return CreateOrderSerializer
-        return OrderDetailSerializer
-
-    def get_queryset(self):
-        return (
-            Order.objects
-            .filter(customer=self.request.user)
-            .select_related("product", "customer")
-            .order_by("-created_at")
-        )
-
-    def perform_create(self, serializer):
-        order = create_order(
-            customer=self.request.user,
-            product_id=serializer.validated_data["product_id"],
-            quantity=serializer.validated_data["quantity"],
-        )
-        serializer.instance = order
-```
-
-### 测试模式（pytest + Factory Boy）
-
-```python
-# apps/orders/tests/factories.py
-import factory
-from apps.accounts.tests.factories import UserFactory
-from apps.products.tests.factories import ProductFactory
-
-class OrderFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = "orders.Order"
-
-    customer = factory.SubFactory(UserFactory)
-    product = factory.SubFactory(ProductFactory, stock=100)
-    quantity = 1
-    total = factory.LazyAttribute(lambda o: o.product.price * o.quantity)
-
-# apps/orders/tests/test_views.py
-import pytest
-from rest_framework.test import APIClient
-
-@pytest.mark.django_db
-class TestCreateOrder:
-    def setup_method(self):
-        self.client = APIClient()
-        self.user = UserFactory()
-        self.client.force_authenticate(self.user)
-
-    def test_create_order_success(self):
-        product = ProductFactory(price=29_99, stock=10)
-        response = self.client.post("/api/orders/", {
-            "product_id": str(product.id),
-            "quantity": 2,
-        })
-        assert response.status_code == 201
-        assert response.data["total"] == 59_98
-
-    def test_create_order_insufficient_stock(self):
-        product = ProductFactory(stock=0)
-        response = self.client.post("/api/orders/", {
-            "product_id": str(product.id),
-            "quantity": 1,
-        })
-        assert response.status_code == 409
-
-    def test_create_order_unauthenticated(self):
-        self.client.force_authenticate(None)
-        response = self.client.post("/api/orders/", {})
-        assert response.status_code == 401
-```
 
 ## 环境变量
 
-```bash
-# Django 核心配置
-SECRET_KEY=          # 密钥
-DEBUG=False          # 调试模式
-ALLOWED_HOSTS=api.example.com  # 允许的主机
+- 请跟随`docs/environment_variables.md`中的环境变量进行配置
+- 开发过程中用到的可以也添加到`docs/environment_variables.md`中进行补充
+- 注意不同的开发环境要根据环境进行配置，例如：开发环境、测试环境、生产环境等，可以在`env/`目录下创建不同的环境变量配置文件，如`.env_local.env`、`.env_production.env`、`.env_uat.env`等，并在项目中根据环境加载对应的环境变量文件。
 
-# 数据库配置
-DATABASE_URL=postgres://user:pass@localhost:5432/myapp
-
-# Redis（Celery 消息队列 + 缓存）
-REDIS_URL=redis://localhost:6379/0
-
-# JWT 配置
-JWT_ACCESS_TOKEN_LIFETIME=15       # 访问令牌有效期（分钟）
-JWT_REFRESH_TOKEN_LIFETIME=10080   # 刷新令牌有效期（分钟，7 天）
-
-# 邮件配置
-EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
-EMAIL_HOST=smtp.example.com
-```
 
 ## 测试策略
 
