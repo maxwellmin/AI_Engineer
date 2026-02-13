@@ -80,6 +80,7 @@ class InsufficientStockError(APIException):
 - 最大行长度：120 个字符（由 ruff 强制校验）
 - 命名规范：类使用 PascalCase，函数/变量使用 snake_case，常量使用 UPPER_SNAKE_CASE
 - 视图层保持轻量 — 业务逻辑放在服务函数或模型方法中
+- 严格控制函数长度和复杂度 — 函数应保持单一职责，避免过长或过于复杂的函数实现。行数建议<40行，复杂度建议<10（由 ruff 强制校验）
 
 
 ## 核心设计模式
