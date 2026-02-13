@@ -1,0 +1,56 @@
+[tool.poetry]
+name = "melonmind"
+version = "0.1.0"
+description = "Django backend with LangChain/LangGraph agents and Mulves knowledge base for network engineering operations"
+authors = ["stttt2003pk@gmail.com"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.12"
+django = "^5.1"
+djangorestframework = "^3.15.0"
+langchain = "^1.2.8"
+langchain-core = "^1.2.8"
+langchain-community = "^0.3.0"
+langgraph = "^1.0.7"
+# mulves 依赖需要根据实际包名调整
+# mulves = "^1.0.0"
+psycopg2-binary = "^2.9.7"
+python-dotenv = "^1.0.0"
+django-cors-headers = "^4.3.0"
+celery = "^5.3.0"
+redis = "^4.6.0"
+setuptools = "<79"
+asyncpg = "^0.29.0"  # PostgreSQL异步驱动，用于MulvesDB连接
+drf-yasg = "^1.21.14"
+pymilvus = "^2.6.8"
+django-filter = "^25.2"
+pypdf2 = "^3.0.1"
+openai = "^2.16.0"
+langchain-text-splitters = "^1.1.0"
+# 添加连接池和监控相关依赖
+sqlalchemy = "^2.0.0"  # 数据库工具包
+timeout-decorator = "^0.5.0"  # 超时控制装饰器
+retry = "^0.9.2"  # 重试机制
+ipdb = "^0.13.13"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+pytest-django = "^4.5.0"
+black = "^23.7.0"
+flake8 = "^6.0.0"
+mypy = "^1.4.0"
+pytest-asyncio = ">=0.21.0,<1.0.0"
+ipython = "^9.10.0"
+# 添加数据库调试和性能监控工具
+pdbpp = "^0.10.3"  # 增强版Python调试器
+pytest-cov = "^4.1.0"  # 代码覆盖率测试
+django-debug-toolbar = "^4.2.0"  # Django调试工具栏
+factory-boy = "^3.3.0"  # 测试数据工厂
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
