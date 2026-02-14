@@ -26,10 +26,12 @@
 ---
 
 ### 阶段 2: 基础搭建
-**状态**: ⏳ 未开始
+**状态**: 🔄 进行中
+**开始日期**: 2025-02-14
 **目标**: 创建 Django 工程和 app，数据库初始化，基础设施和环境变量配置
 
 **验收标准**:
+- [ ] 基础设施就绪 (Redis, Neo4j, PostgreSQL, Milvus)
 - [ ] Django 项目结构创建完成 (config/, apps/, core/)
 - [ ] PostgreSQL 连接正常
 - [ ] migrations 执行成功
@@ -37,6 +39,14 @@
 - [ ] 环境变量配置完成
 
 **依赖**: 无
+
+**实施计划**: `~/.codebuddy/plans/toasty-nebula-tesla.md`
+
+**待完成的基础设施** (用户手动操作):
+- [ ] Redis: `brew install redis && brew services start redis`
+- [ ] Neo4j: `brew install neo4j && brew services start neo4j`
+- [ ] PostgreSQL: 创建用户 maxmelonmind 和数据库 MelonMind
+- [ ] Milvus: `cd dev_utils && docker-compose up -d`
 
 ---
 
@@ -187,6 +197,7 @@
 |------|------|---------|
 | 2025-02-14 | 项目设置 | 完成 Codebuddy 配置：CODEBUDDY.md、agent (rag_expert)、skill (create_api_endpoint)、rule (database_operations)、memories (progress, decisions) |
 | 2025-02-14 | 阶段 1 | 完成文档阅读和计划确认 |
+| 2025-02-14 | 阶段 2 | 完成实施计划制定，计划文件保存至 ~/.codebuddy/plans/toasty-nebula-tesla.md |
 
 ---
 

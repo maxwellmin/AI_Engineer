@@ -4,53 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="73d6f8f2-f1e0-49df-a8a4-ca3703b1c06f" name="Changes" comment="docs: 将文档从英文翻译为中文">
-      <change beforePath="$PROJECT_DIR$/.codebuddy/rules/database_operations.md" beforeDir="false" afterPath="$PROJECT_DIR$/.codebuddy/rules/database_operations.md" afterDir="false" />
+    <list default="true" id="73d6f8f2-f1e0-49df-a8a4-ca3703b1c06f" name="Changes" comment="docs: 将文档翻译为中文">
+      <change beforePath="$PROJECT_DIR$/.codebuddy/memories/progress.md" beforeDir="false" afterPath="$PROJECT_DIR$/.codebuddy/memories/progress.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/rules/python/coding-style.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/rules/python/coding-style.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/rules/python/hooks.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/rules/python/hooks.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/rules/python/patterns.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/rules/python/patterns.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/rules/python/security.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/rules/python/security.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/rules/python/testing.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/rules/python/testing.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/api-design/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/api-design/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/backend-patterns/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/backend-patterns/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/clickhouse-io/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/clickhouse-io/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/coding-standards/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/coding-standards/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/configure-ecc/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/configure-ecc/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/continuous-learning-v2/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/continuous-learning-v2/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/continuous-learning-v2/agents/observer.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/continuous-learning-v2/agents/observer.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/continuous-learning/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/continuous-learning/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/cpp-testing/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/cpp-testing/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/database-migrations/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/database-migrations/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/deployment-patterns/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/deployment-patterns/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/django-patterns/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/django-patterns/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/django-security/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/django-security/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/django-tdd/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/django-tdd/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/django-verification/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/django-verification/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/docker-patterns/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/docker-patterns/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/e2e-testing/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/e2e-testing/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/eval-harness/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/eval-harness/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/frontend-patterns/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/frontend-patterns/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/golang-patterns/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/golang-patterns/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/golang-testing/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/golang-testing/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/iterative-retrieval/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/iterative-retrieval/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/java-coding-standards/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/java-coding-standards/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/jpa-patterns/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/jpa-patterns/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/nutrient-document-processing/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/nutrient-document-processing/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/postgres-patterns/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/postgres-patterns/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/project-guidelines-example/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/project-guidelines-example/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/python-patterns/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/python-patterns/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/python-testing/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/python-testing/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/security-review/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/security-review/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/security-review/cloud-infrastructure-security.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/security-review/cloud-infrastructure-security.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/security-scan/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/security-scan/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/springboot-patterns/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/springboot-patterns/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/springboot-security/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/springboot-security/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/springboot-tdd/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/springboot-tdd/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/springboot-verification/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/springboot-verification/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/strategic-compact/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/strategic-compact/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/tdd-workflow/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/tdd-workflow/SKILL.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tmp/skills/verification-loop/SKILL.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/verification-loop/SKILL.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -156,7 +112,7 @@
       <workItem from="1770941437951" duration="1260000" />
       <workItem from="1770947803258" duration="19693000" />
       <workItem from="1771031969500" duration="362000" />
-      <workItem from="1771032345084" duration="12984000" />
+      <workItem from="1771032345084" duration="14407000" />
     </task>
     <task id="LOCAL-00001" summary="chore(project): 初始化项目配置文件&#10;&#10;- 添加 .gitignore 文件用于忽略构建产物和环境文件&#10;- 添加 .idea 项目配置文件包括模块、编译器设置和版本控制配置&#10;- 创建 pyproject.toml 配置文件定义项目依赖和构建系统&#10;- 配置 Poetry 包管理器及开发和生产依赖项&#10;- 设置 Django 项目基础配置及 LangChain 相关组件依赖&#10;- 添加数据库连接、异步处理和测试相关依赖包">
       <option name="closed" value="true" />
@@ -246,7 +202,15 @@
       <option name="project" value="LOCAL" />
       <updated>1771050731772</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="docs: 将文档翻译为中文">
+      <option name="closed" value="true" />
+      <created>1771052712522</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1771052712522</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -272,7 +236,8 @@
     <MESSAGE value="docs: 更新项目设置进度文档" />
     <MESSAGE value="docs: 添加架构师代理文档并更新项目配置" />
     <MESSAGE value="docs: 将文档从英文翻译为中文" />
-    <option name="LAST_COMMIT_MESSAGE" value="docs: 将文档从英文翻译为中文" />
+    <MESSAGE value="docs: 将文档翻译为中文" />
+    <option name="LAST_COMMIT_MESSAGE" value="docs: 将文档翻译为中文" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>
