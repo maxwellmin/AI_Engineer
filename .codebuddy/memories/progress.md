@@ -185,7 +185,27 @@
 
 | 日期 | 阶段 | 更新内容 |
 |------|------|---------|
+| 2025-02-14 | 项目设置 | 完成 Codebuddy 配置：CODEBUDDY.md、agent (rag_expert)、skill (create_api_endpoint)、rule (database_operations)、memories (progress, decisions) |
 | 2025-02-14 | 阶段 1 | 完成文档阅读和计划确认 |
+
+---
+
+## 项目设置进度
+
+### Codebuddy 配置 (2025-02-14)
+
+**已完成**:
+- [x] `.codebuddy/CODEBUDDY.md` - 项目级别指令文件，包含技术栈、架构、编码规范等
+- [x] `.codebuddy/agents/rag_expert.md` - RAG 专家 Agent 配置
+- [x] `.codebuddy/skills/create_api_endpoint.md` - 创建 API 端点技能
+- [x] `.codebuddy/rules/database_operations.md` - 数据库操作规则
+- [x] `.codebuddy/memories/progress.md` - 开发进度追踪
+- [x] `.codebuddy/memories/decisions.md` - 技术决策记录
+
+**待完成**:
+- [ ] 更多 Agent 配置（根据需要添加）
+- [ ] 更多 Skill 配置（如：run_tests、create_model 等）
+- [ ] 更多 Rule 配置（如：api_design、security 等）
 
 ---
 
