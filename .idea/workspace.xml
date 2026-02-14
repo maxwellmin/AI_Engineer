@@ -4,11 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="73d6f8f2-f1e0-49df-a8a4-ca3703b1c06f" name="Changes" comment="docs: 更新项目设置进度文档">
-      <change afterPath="$PROJECT_DIR$/tmp/agents/architect.md" afterDir="false" />
+    <list default="true" id="73d6f8f2-f1e0-49df-a8a4-ca3703b1c06f" name="Changes" comment="docs: 添加架构师代理文档并更新项目配置">
       <change beforePath="$PROJECT_DIR$/.codebuddy/CODEBUDDY.md" beforeDir="false" afterPath="$PROJECT_DIR$/.codebuddy/CODEBUDDY.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/codebuddy.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tmp/agents/architect.md" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/agents/architect.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -114,7 +113,7 @@
       <workItem from="1770941437951" duration="1260000" />
       <workItem from="1770947803258" duration="19693000" />
       <workItem from="1771031969500" duration="362000" />
-      <workItem from="1771032345084" duration="7417000" />
+      <workItem from="1771032345084" duration="9538000" />
     </task>
     <task id="LOCAL-00001" summary="chore(project): 初始化项目配置文件&#10;&#10;- 添加 .gitignore 文件用于忽略构建产物和环境文件&#10;- 添加 .idea 项目配置文件包括模块、编译器设置和版本控制配置&#10;- 创建 pyproject.toml 配置文件定义项目依赖和构建系统&#10;- 配置 Poetry 包管理器及开发和生产依赖项&#10;- 设置 Django 项目基础配置及 LangChain 相关组件依赖&#10;- 添加数据库连接、异步处理和测试相关依赖包">
       <option name="closed" value="true" />
@@ -180,7 +179,15 @@
       <option name="project" value="LOCAL" />
       <updated>1771039097819</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="docs: 添加架构师代理文档并更新项目配置">
+      <option name="closed" value="true" />
+      <created>1771040425469</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1771040425469</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -204,7 +211,8 @@
     <MESSAGE value="chore: 删除过期的项目文档CLAUDE.md" />
     <MESSAGE value="chore: 更新IDE工作区配置文件" />
     <MESSAGE value="docs: 更新项目设置进度文档" />
-    <option name="LAST_COMMIT_MESSAGE" value="docs: 更新项目设置进度文档" />
+    <MESSAGE value="docs: 添加架构师代理文档并更新项目配置" />
+    <option name="LAST_COMMIT_MESSAGE" value="docs: 添加架构师代理文档并更新项目配置" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>
