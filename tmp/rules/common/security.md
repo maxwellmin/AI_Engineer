@@ -1,29 +1,29 @@
-# Security Guidelines
+# 安全指南
 
-## Mandatory Security Checks
+## 强制安全检查
 
-Before ANY commit:
-- [ ] No hardcoded secrets (API keys, passwords, tokens)
-- [ ] All user inputs validated
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] XSS prevention (sanitized HTML)
-- [ ] CSRF protection enabled
-- [ ] Authentication/authorization verified
-- [ ] Rate limiting on all endpoints
-- [ ] Error messages don't leak sensitive data
+任何提交前：
+- [ ] 无硬编码密钥（API key、密码、token）
+- [ ] 所有用户输入已验证
+- [ ] SQL 注入防护（参数化查询）
+- [ ] XSS 防护（HTML 消毒）
+- [ ] CSRF 保护已启用
+- [ ] 认证/授权已验证
+- [ ] 所有端点已限流
+- [ ] 错误消息不泄露敏感数据
 
-## Secret Management
+## 密钥管理
 
-- NEVER hardcode secrets in source code
-- ALWAYS use environment variables or a secret manager
-- Validate that required secrets are present at startup
-- Rotate any secrets that may have been exposed
+- 绝不在源代码中硬编码密钥
+- 始终使用环境变量或密钥管理器
+- 启动时验证必需的密钥是否存在
+- 轮换任何可能已泄露的密钥
 
-## Security Response Protocol
+## 安全响应协议
 
-If security issue found:
-1. STOP immediately
-2. Use **security-reviewer** agent
-3. Fix CRITICAL issues before continuing
-4. Rotate any exposed secrets
-5. Review entire codebase for similar issues
+发现安全问题时：
+1. 立即停止
+2. 使用 **security-reviewer** agent
+3. 在继续前修复 CRITICAL 问题
+4. 轮换任何已泄露的密钥
+5. 审查整个代码库以查找类似问题

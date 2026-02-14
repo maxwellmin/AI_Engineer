@@ -1,49 +1,49 @@
-# Agent Orchestration
+# Agent 编排
 
-## Available Agents
+## 可用 Agent
 
-Located in `~/.claude/agents/`:
+位于 `~/.codebuddy/agents/`：
 
-| Agent | Purpose | When to Use |
-|-------|---------|-------------|
-| planner | Implementation planning | Complex features, refactoring |
-| architect | System design | Architectural decisions |
-| tdd-guide | Test-driven development | New features, bug fixes |
-| code-reviewer | Code review | After writing code |
-| security-reviewer | Security analysis | Before commits |
-| build-error-resolver | Fix build errors | When build fails |
-| e2e-runner | E2E testing | Critical user flows |
-| refactor-cleaner | Dead code cleanup | Code maintenance |
-| doc-updater | Documentation | Updating docs |
+| Agent | 用途 | 使用场景 |
+|-------|------|----------|
+| planner | 实现规划 | 复杂功能、重构 |
+| architect | 系统设计 | 架构决策 |
+| tdd-guide | 测试驱动开发 | 新功能、bug 修复 |
+| code-reviewer | 代码审查 | 编写代码后 |
+| security-reviewer | 安全分析 | 提交前 |
+| build-error-resolver | 修复构建错误 | 构建失败时 |
+| e2e-runner | E2E 测试 | 关键用户流程 |
+| refactor-cleaner | 死代码清理 | 代码维护 |
+| doc-updater | 文档更新 | 更新文档 |
 
-## Immediate Agent Usage
+## 立即使用 Agent
 
-No user prompt needed:
-1. Complex feature requests - Use **planner** agent
-2. Code just written/modified - Use **code-reviewer** agent
-3. Bug fix or new feature - Use **tdd-guide** agent
-4. Architectural decision - Use **architect** agent
+无需用户提示：
+1. 复杂功能请求 - 使用 **planner** agent
+2. 代码刚编写/修改 - 使用 **code-reviewer** agent
+3. Bug 修复或新功能 - 使用 **tdd-guide** agent
+4. 架构决策 - 使用 **architect** agent
 
-## Parallel Task Execution
+## 并行任务执行
 
-ALWAYS use parallel Task execution for independent operations:
+对于独立操作，始终使用并行 Task 执行：
 
 ```markdown
-# GOOD: Parallel execution
-Launch 3 agents in parallel:
-1. Agent 1: Security analysis of auth module
-2. Agent 2: Performance review of cache system
-3. Agent 3: Type checking of utilities
+# 正确：并行执行
+并行启动 3 个 agent：
+1. Agent 1: 认证模块安全分析
+2. Agent 2: 缓存系统性能审查
+3. Agent 3: 工具类类型检查
 
-# BAD: Sequential when unnecessary
-First agent 1, then agent 2, then agent 3
+# 错误：不必要的顺序执行
+先 agent 1，然后 agent 2，然后 agent 3
 ```
 
-## Multi-Perspective Analysis
+## 多视角分析
 
-For complex problems, use split role sub-agents:
-- Factual reviewer
-- Senior engineer
-- Security expert
-- Consistency reviewer
-- Redundancy checker
+对于复杂问题，使用分角色子 agent：
+- 事实审查者
+- 资深工程师
+- 安全专家
+- 一致性审查者
+- 冗余检查者
