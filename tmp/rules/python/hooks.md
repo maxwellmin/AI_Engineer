@@ -5,15 +5,15 @@ paths:
 ---
 # Python Hooks
 
-> This file extends [common/hooks.md](../common/hooks.md) with Python specific content.
+> 本文件扩展了 [common/hooks.md](../common/hooks.md) 的 Python 特定内容。
 
 ## PostToolUse Hooks
 
-Configure in `~/.claude/settings.json`:
+在 `~/.codebuddy/settings.json` 中配置：
 
-- **black/ruff**: Auto-format `.py` files after edit
-- **mypy/pyright**: Run type checking after editing `.py` files
+- **black/ruff**: 编辑 `.py` 文件后自动格式化
+- **mypy/pyright**: 编辑 `.py` 文件后运行类型检查
 
-## Warnings
+## 警告
 
-- Warn about `print()` statements in edited files (use `logging` module instead)
+- 对编辑文件中的 `print()` 语句发出警告（改用 `logging` 模块）

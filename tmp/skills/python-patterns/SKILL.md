@@ -1,43 +1,43 @@
 ---
 name: python-patterns
-description: Pythonic idioms, PEP 8 standards, type hints, and best practices for building robust, efficient, and maintainable Python applications.
+description: Python 惯用法、PEP 8 规范、类型提示，以及构建健壮、高效、可维护 Python 应用的最佳实践。
 ---
 
-# Python Development Patterns
+# Python 开发模式
 
-Idiomatic Python patterns and best practices for building robust, efficient, and maintainable applications.
+Python 惯用模式和最佳实践，用于构建健壮、高效、可维护的应用程序。
 
-## When to Activate
+## 激活时机
 
-- Writing new Python code
-- Reviewing Python code
-- Refactoring existing Python code
-- Designing Python packages/modules
+- 编写新的 Python 代码
+- 审查 Python 代码
+- 重构现有 Python 代码
+- 设计 Python 包/模块
 
-## Core Principles
+## 核心原则
 
-### 1. Readability Counts
+### 1. 可读性至上
 
-Python prioritizes readability. Code should be obvious and easy to understand.
+Python 优先考虑可读性。代码应该清晰易懂。
 
 ```python
-# Good: Clear and readable
+# 正确：清晰可读
 def get_active_users(users: list[User]) -> list[User]:
-    """Return only active users from the provided list."""
+    """从提供的列表中返回仅活跃的用户。"""
     return [user for user in users if user.is_active]
 
 
-# Bad: Clever but confusing
+# 错误：聪明但令人困惑
 def get_active_users(u):
     return [x for x in u if x.a]
 ```
 
-### 2. Explicit is Better Than Implicit
+### 2. 显式优于隐式
 
-Avoid magic; be clear about what your code does.
+避免魔法行为；清楚说明代码的作用。
 
 ```python
-# Good: Explicit configuration
+# 正确：显式配置
 import logging
 
 logging.basicConfig(
@@ -45,24 +45,24 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 
-# Bad: Hidden side effects
+# 错误：隐藏的副作用
 import some_module
-some_module.setup()  # What does this do?
+some_module.setup()  # 这做了什么？
 ```
 
-### 3. EAFP - Easier to Ask Forgiveness Than Permission
+### 3. EAFP - 请求原谅比许可更容易
 
-Python prefers exception handling over checking conditions.
+Python 更倾向于异常处理而非条件检查。
 
 ```python
-# Good: EAFP style
+# 正确：EAFP 风格
 def get_value(dictionary: dict, key: str) -> Any:
     try:
         return dictionary[key]
     except KeyError:
         return default_value
 
-# Bad: LBYL (Look Before You Leap) style
+# 错误：LBYL（三思而后行）风格
 def get_value(dictionary: dict, key: str) -> Any:
     if key in dictionary:
         return dictionary[key]
@@ -70,9 +70,9 @@ def get_value(dictionary: dict, key: str) -> Any:
         return default_value
 ```
 
-## Type Hints
+## 类型提示
 
-### Basic Type Annotations
+### 基本类型注解
 
 ```python
 from typing import Optional, List, Dict, Any
@@ -82,128 +82,128 @@ def process_user(
     data: Dict[str, Any],
     active: bool = True
 ) -> Optional[User]:
-    """Process a user and return the updated User or None."""
+    """处理用户并返回更新的 User 或 None。"""
     if not active:
         return None
     return User(user_id, data)
 ```
 
-### Modern Type Hints (Python 3.9+)
+### 现代类型提示（Python 3.9+）
 
 ```python
-# Python 3.9+ - Use built-in types
+# Python 3.9+ - 使用内置类型
 def process_items(items: list[str]) -> dict[str, int]:
     return {item: len(item) for item in items}
 
-# Python 3.8 and earlier - Use typing module
+# Python 3.8 及更早版本 - 使用 typing 模块
 from typing import List, Dict
 
 def process_items(items: List[str]) -> Dict[str, int]:
     return {item: len(item) for item in items}
 ```
 
-### Type Aliases and TypeVar
+### 类型别名和 TypeVar
 
 ```python
 from typing import TypeVar, Union
 
-# Type alias for complex types
+# 复杂类型的类型别名
 JSON = Union[dict[str, Any], list[Any], str, int, float, bool, None]
 
 def parse_json(data: str) -> JSON:
     return json.loads(data)
 
-# Generic types
+# 泛型类型
 T = TypeVar('T')
 
 def first(items: list[T]) -> T | None:
-    """Return the first item or None if list is empty."""
+    """返回第一个元素，如果列表为空则返回 None。"""
     return items[0] if items else None
 ```
 
-### Protocol-Based Duck Typing
+### 基于协议的鸭子类型
 
 ```python
 from typing import Protocol
 
 class Renderable(Protocol):
     def render(self) -> str:
-        """Render the object to a string."""
+        """将对象渲染为字符串。"""
 
 def render_all(items: list[Renderable]) -> str:
-    """Render all items that implement the Renderable protocol."""
+    """渲染所有实现 Renderable 协议的项。"""
     return "\n".join(item.render() for item in items)
 ```
 
-## Error Handling Patterns
+## 错误处理模式
 
-### Specific Exception Handling
+### 特定异常处理
 
 ```python
-# Good: Catch specific exceptions
+# 正确：捕获特定异常
 def load_config(path: str) -> Config:
     try:
         with open(path) as f:
             return Config.from_json(f.read())
     except FileNotFoundError as e:
-        raise ConfigError(f"Config file not found: {path}") from e
+        raise ConfigError(f"配置文件未找到: {path}") from e
     except json.JSONDecodeError as e:
-        raise ConfigError(f"Invalid JSON in config: {path}") from e
+        raise ConfigError(f"配置文件 JSON 无效: {path}") from e
 
-# Bad: Bare except
+# 错误：裸 except
 def load_config(path: str) -> Config:
     try:
         with open(path) as f:
             return Config.from_json(f.read())
     except:
-        return None  # Silent failure!
+        return None  # 静默失败！
 ```
 
-### Exception Chaining
+### 异常链
 
 ```python
 def process_data(data: str) -> Result:
     try:
         parsed = json.loads(data)
     except json.JSONDecodeError as e:
-        # Chain exceptions to preserve the traceback
-        raise ValueError(f"Failed to parse data: {data}") from e
+        # 链接异常以保留回溯
+        raise ValueError(f"解析数据失败: {data}") from e
 ```
 
-### Custom Exception Hierarchy
+### 自定义异常层次结构
 
 ```python
 class AppError(Exception):
-    """Base exception for all application errors."""
+    """所有应用错误的基类异常。"""
     pass
 
 class ValidationError(AppError):
-    """Raised when input validation fails."""
+    """输入验证失败时抛出。"""
     pass
 
 class NotFoundError(AppError):
-    """Raised when a requested resource is not found."""
+    """请求的资源未找到时抛出。"""
     pass
 
-# Usage
+# 使用
 def get_user(user_id: str) -> User:
     user = db.find_user(user_id)
     if not user:
-        raise NotFoundError(f"User not found: {user_id}")
+        raise NotFoundError(f"用户未找到: {user_id}")
     return user
 ```
 
-## Context Managers
+## 上下文管理器
 
-### Resource Management
+### 资源管理
 
 ```python
-# Good: Using context managers
+# 正确：使用上下文管理器
 def process_file(path: str) -> str:
     with open(path, 'r') as f:
         return f.read()
 
-# Bad: Manual resource management
+# 错误：手动资源管理
 def process_file(path: str) -> str:
     f = open(path, 'r')
     try:
@@ -212,25 +212,25 @@ def process_file(path: str) -> str:
         f.close()
 ```
 
-### Custom Context Managers
+### 自定义上下文管理器
 
 ```python
 from contextlib import contextmanager
 
 @contextmanager
 def timer(name: str):
-    """Context manager to time a block of code."""
+    """计时代码块的上下文管理器。"""
     start = time.perf_counter()
     yield
     elapsed = time.perf_counter() - start
-    print(f"{name} took {elapsed:.4f} seconds")
+    print(f"{name} 耗时 {elapsed:.4f} 秒")
 
-# Usage
-with timer("data processing"):
+# 使用
+with timer("数据处理"):
     process_large_dataset()
 ```
 
-### Context Manager Classes
+### 上下文管理器类
 
 ```python
 class DatabaseTransaction:
@@ -246,33 +246,33 @@ class DatabaseTransaction:
             self.connection.commit()
         else:
             self.connection.rollback()
-        return False  # Don't suppress exceptions
+        return False  # 不抑制异常
 
-# Usage
+# 使用
 with DatabaseTransaction(conn):
     user = conn.create_user(user_data)
     conn.create_profile(user.id, profile_data)
 ```
 
-## Comprehensions and Generators
+## 推导式和生成器
 
-### List Comprehensions
+### 列表推导式
 
 ```python
-# Good: List comprehension for simple transformations
+# 正确：简单转换的列表推导式
 names = [user.name for user in users if user.is_active]
 
-# Bad: Manual loop
+# 错误：手动循环
 names = []
 for user in users:
     if user.is_active:
         names.append(user.name)
 
-# Complex comprehensions should be expanded
-# Bad: Too complex
+# 复杂推导式应该展开
+# 错误：太复杂
 result = [x * 2 for x in items if x > 0 if x % 2 == 0]
 
-# Good: Use a generator function
+# 正确：使用生成器函数
 def filter_and_transform(items: Iterable[int]) -> list[int]:
     result = []
     for x in items:
@@ -281,33 +281,33 @@ def filter_and_transform(items: Iterable[int]) -> list[int]:
     return result
 ```
 
-### Generator Expressions
+### 生成器表达式
 
 ```python
-# Good: Generator for lazy evaluation
+# 正确：惰性求值的生成器
 total = sum(x * x for x in range(1_000_000))
 
-# Bad: Creates large intermediate list
+# 错误：创建大型中间列表
 total = sum([x * x for x in range(1_000_000)])
 ```
 
-### Generator Functions
+### 生成器函数
 
 ```python
 def read_large_file(path: str) -> Iterator[str]:
-    """Read a large file line by line."""
+    """逐行读取大文件。"""
     with open(path) as f:
         for line in f:
             yield line.strip()
 
-# Usage
+# 使用
 for line in read_large_file("huge.txt"):
     process(line)
 ```
 
-## Data Classes and Named Tuples
+## 数据类和命名元组
 
-### Data Classes
+### 数据类
 
 ```python
 from dataclasses import dataclass, field
@@ -315,14 +315,14 @@ from datetime import datetime
 
 @dataclass
 class User:
-    """User entity with automatic __init__, __repr__, and __eq__."""
+    """具有自动 __init__、__repr__ 和 __eq__ 的用户实体。"""
     id: str
     name: str
     email: str
     created_at: datetime = field(default_factory=datetime.now)
     is_active: bool = True
 
-# Usage
+# 使用
 user = User(
     id="123",
     name="Alice",
@@ -330,7 +330,7 @@ user = User(
 )
 ```
 
-### Data Classes with Validation
+### 带验证的数据类
 
 ```python
 @dataclass
@@ -339,49 +339,49 @@ class User:
     age: int
 
     def __post_init__(self):
-        # Validate email format
+        # 验证邮箱格式
         if "@" not in self.email:
-            raise ValueError(f"Invalid email: {self.email}")
-        # Validate age range
+            raise ValueError(f"无效邮箱: {self.email}")
+        # 验证年龄范围
         if self.age < 0 or self.age > 150:
-            raise ValueError(f"Invalid age: {self.age}")
+            raise ValueError(f"无效年龄: {self.age}")
 ```
 
-### Named Tuples
+### 命名元组
 
 ```python
 from typing import NamedTuple
 
 class Point(NamedTuple):
-    """Immutable 2D point."""
+    """不可变的二维点。"""
     x: float
     y: float
 
     def distance(self, other: 'Point') -> float:
         return ((self.x - other.x) ** 2 + (self.y - other.y) ** 2) ** 0.5
 
-# Usage
+# 使用
 p1 = Point(0, 0)
 p2 = Point(3, 4)
 print(p1.distance(p2))  # 5.0
 ```
 
-## Decorators
+## 装饰器
 
-### Function Decorators
+### 函数装饰器
 
 ```python
 import functools
 import time
 
 def timer(func: Callable) -> Callable:
-    """Decorator to time function execution."""
+    """计时函数执行的装饰器。"""
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         start = time.perf_counter()
         result = func(*args, **kwargs)
         elapsed = time.perf_counter() - start
-        print(f"{func.__name__} took {elapsed:.4f}s")
+        print(f"{func.__name__} 耗时 {elapsed:.4f}s")
         return result
     return wrapper
 
@@ -389,14 +389,14 @@ def timer(func: Callable) -> Callable:
 def slow_function():
     time.sleep(1)
 
-# slow_function() prints: slow_function took 1.0012s
+# slow_function() 输出: slow_function 耗时 1.0012s
 ```
 
-### Parameterized Decorators
+### 参数化装饰器
 
 ```python
 def repeat(times: int):
-    """Decorator to repeat a function multiple times."""
+    """多次重复函数的装饰器。"""
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -409,16 +409,16 @@ def repeat(times: int):
 
 @repeat(times=3)
 def greet(name: str) -> str:
-    return f"Hello, {name}!"
+    return f"你好, {name}!"
 
-# greet("Alice") returns ["Hello, Alice!", "Hello, Alice!", "Hello, Alice!"]
+# greet("Alice") 返回 ["你好, Alice!", "你好, Alice!", "你好, Alice!"]
 ```
 
-### Class-Based Decorators
+### 基于类的装饰器
 
 ```python
 class CountCalls:
-    """Decorator that counts how many times a function is called."""
+    """计数函数调用次数的装饰器。"""
     def __init__(self, func: Callable):
         functools.update_wrapper(self, func)
         self.func = func
@@ -426,32 +426,32 @@ class CountCalls:
 
     def __call__(self, *args, **kwargs):
         self.count += 1
-        print(f"{self.func.__name__} has been called {self.count} times")
+        print(f"{self.func.__name__} 已被调用 {self.count} 次")
         return self.func(*args, **kwargs)
 
 @CountCalls
 def process():
     pass
 
-# Each call to process() prints the call count
+# 每次调用 process() 都会打印调用次数
 ```
 
-## Concurrency Patterns
+## 并发模式
 
-### Threading for I/O-Bound Tasks
+### I/O 密集型任务使用线程
 
 ```python
 import concurrent.futures
 import threading
 
 def fetch_url(url: str) -> str:
-    """Fetch a URL (I/O-bound operation)."""
+    """获取 URL（I/O 密集型操作）。"""
     import urllib.request
     with urllib.request.urlopen(url) as response:
         return response.read().decode()
 
 def fetch_all_urls(urls: list[str]) -> dict[str, str]:
-    """Fetch multiple URLs concurrently using threads."""
+    """使用线程并发获取多个 URL。"""
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
         future_to_url = {executor.submit(fetch_url, url): url for url in urls}
         results = {}
@@ -460,46 +460,46 @@ def fetch_all_urls(urls: list[str]) -> dict[str, str]:
             try:
                 results[url] = future.result()
             except Exception as e:
-                results[url] = f"Error: {e}"
+                results[url] = f"错误: {e}"
     return results
 ```
 
-### Multiprocessing for CPU-Bound Tasks
+### CPU 密集型任务使用多进程
 
 ```python
 def process_data(data: list[int]) -> int:
-    """CPU-intensive computation."""
+    """CPU 密集型计算。"""
     return sum(x ** 2 for x in data)
 
 def process_all(datasets: list[list[int]]) -> list[int]:
-    """Process multiple datasets using multiple processes."""
+    """使用多进程处理多个数据集。"""
     with concurrent.futures.ProcessPoolExecutor() as executor:
         results = list(executor.map(process_data, datasets))
     return results
 ```
 
-### Async/Await for Concurrent I/O
+### 异步 I/O 使用 async/await
 
 ```python
 import asyncio
 
 async def fetch_async(url: str) -> str:
-    """Fetch a URL asynchronously."""
+    """异步获取 URL。"""
     import aiohttp
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             return await response.text()
 
 async def fetch_all(urls: list[str]) -> dict[str, str]:
-    """Fetch multiple URLs concurrently."""
+    """并发获取多个 URL。"""
     tasks = [fetch_async(url) for url in urls]
     results = await asyncio.gather(*tasks, return_exceptions=True)
     return dict(zip(urls, results))
 ```
 
-## Package Organization
+## 包组织
 
-### Standard Project Layout
+### 标准项目布局
 
 ```
 myproject/
@@ -526,10 +526,10 @@ myproject/
 └── .gitignore
 ```
 
-### Import Conventions
+### 导入约定
 
 ```python
-# Good: Import order - stdlib, third-party, local
+# 正确：导入顺序 - 标准库、第三方、本地
 import os
 import sys
 from pathlib import Path
@@ -540,37 +540,37 @@ from fastapi import FastAPI
 from mypackage.models import User
 from mypackage.utils import format_name
 
-# Good: Use isort for automatic import sorting
+# 正确：使用 isort 自动排序导入
 # pip install isort
 ```
 
-### __init__.py for Package Exports
+### __init__.py 用于包导出
 
 ```python
 # mypackage/__init__.py
-"""mypackage - A sample Python package."""
+"""mypackage - 示例 Python 包。"""
 
 __version__ = "1.0.0"
 
-# Export main classes/functions at package level
+# 在包级别导出主要类/函数
 from mypackage.models import User, Post
 from mypackage.utils import format_name
 
 __all__ = ["User", "Post", "format_name"]
 ```
 
-## Memory and Performance
+## 内存和性能
 
-### Using __slots__ for Memory Efficiency
+### 使用 __slots__ 提高内存效率
 
 ```python
-# Bad: Regular class uses __dict__ (more memory)
+# 错误：普通类使用 __dict__（更多内存）
 class Point:
     def __init__(self, x: float, y: float):
         self.x = x
         self.y = y
 
-# Good: __slots__ reduces memory usage
+# 正确：__slots__ 减少内存使用
 class Point:
     __slots__ = ['x', 'y']
 
@@ -579,33 +579,33 @@ class Point:
         self.y = y
 ```
 
-### Generator for Large Data
+### 大数据使用生成器
 
 ```python
-# Bad: Returns full list in memory
+# 错误：返回完整列表到内存
 def read_lines(path: str) -> list[str]:
     with open(path) as f:
         return [line.strip() for line in f]
 
-# Good: Yields lines one at a time
+# 正确：逐行 yield
 def read_lines(path: str) -> Iterator[str]:
     with open(path) as f:
         for line in f:
             yield line.strip()
 ```
 
-### Avoid String Concatenation in Loops
+### 避免循环中的字符串拼接
 
 ```python
-# Bad: O(n²) due to string immutability
+# 错误：由于字符串不可变性，O(n²)
 result = ""
 for item in items:
     result += str(item)
 
-# Good: O(n) using join
+# 正确：使用 join，O(n)
 result = "".join(str(item) for item in items)
 
-# Good: Using StringIO for building
+# 正确：使用 StringIO 构建
 from io import StringIO
 
 buffer = StringIO()
@@ -614,34 +614,34 @@ for item in items:
 result = buffer.getvalue()
 ```
 
-## Python Tooling Integration
+## Python 工具集成
 
-### Essential Commands
+### 常用命令
 
 ```bash
-# Code formatting
+# 代码格式化
 black .
 isort .
 
-# Linting
+# 代码检查
 ruff check .
 pylint mypackage/
 
-# Type checking
+# 类型检查
 mypy .
 
-# Testing
+# 测试
 pytest --cov=mypackage --cov-report=html
 
-# Security scanning
+# 安全扫描
 bandit -r .
 
-# Dependency management
+# 依赖管理
 pip-audit
 safety check
 ```
 
-### pyproject.toml Configuration
+### pyproject.toml 配置
 
 ```toml
 [project]
@@ -681,69 +681,69 @@ testpaths = ["tests"]
 addopts = "--cov=mypackage --cov-report=term-missing"
 ```
 
-## Quick Reference: Python Idioms
+## 快速参考：Python 惯用法
 
-| Idiom | Description |
-|-------|-------------|
-| EAFP | Easier to Ask Forgiveness than Permission |
-| Context managers | Use `with` for resource management |
-| List comprehensions | For simple transformations |
-| Generators | For lazy evaluation and large datasets |
-| Type hints | Annotate function signatures |
-| Dataclasses | For data containers with auto-generated methods |
-| `__slots__` | For memory optimization |
-| f-strings | For string formatting (Python 3.6+) |
-| `pathlib.Path` | For path operations (Python 3.4+) |
-| `enumerate` | For index-element pairs in loops |
+| 惯用法 | 描述 |
+|-------|------|
+| EAFP | 请求原谅比许可更容易 |
+| 上下文管理器 | 使用 `with` 进行资源管理 |
+| 列表推导式 | 用于简单转换 |
+| 生成器 | 用于惰性求值和大数据集 |
+| 类型提示 | 注解函数签名 |
+| Dataclasses | 用于自动生成方法的数据容器 |
+| `__slots__` | 用于内存优化 |
+| f-strings | 用于字符串格式化（Python 3.6+）|
+| `pathlib.Path` | 用于路径操作（Python 3.4+）|
+| `enumerate` | 用于循环中的索引-元素对 |
 
-## Anti-Patterns to Avoid
+## 需要避免的反模式
 
 ```python
-# Bad: Mutable default arguments
+# 错误：可变默认参数
 def append_to(item, items=[]):
     items.append(item)
     return items
 
-# Good: Use None and create new list
+# 正确：使用 None 并创建新列表
 def append_to(item, items=None):
     if items is None:
         items = []
     items.append(item)
     return items
 
-# Bad: Checking type with type()
+# 错误：用 type() 检查类型
 if type(obj) == list:
     process(obj)
 
-# Good: Use isinstance
+# 正确：使用 isinstance
 if isinstance(obj, list):
     process(obj)
 
-# Bad: Comparing to None with ==
+# 错误：用 == 比较None
 if value == None:
     process()
 
-# Good: Use is
+# 正确：使用 is
 if value is None:
     process()
 
-# Bad: from module import *
+# 错误：from module import *
 from os.path import *
 
-# Good: Explicit imports
+# 正确：显式导入
 from os.path import join, exists
 
-# Bad: Bare except
+# 错误：裸 except
 try:
     risky_operation()
 except:
     pass
 
-# Good: Specific exception
+# 正确：特定异常
 try:
     risky_operation()
 except SpecificError as e:
-    logger.error(f"Operation failed: {e}")
+    logger.error(f"操作失败: {e}")
 ```
 
-__Remember__: Python code should be readable, explicit, and follow the principle of least surprise. When in doubt, prioritize clarity over cleverness.
+**记住**：Python 代码应该是可读的、显式的，并遵循最小惊讶原则。如有疑问，优先考虑清晰而非巧妙。

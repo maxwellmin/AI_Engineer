@@ -3,69 +3,69 @@ name: iterative-retrieval
 description: Pattern for progressively refining context retrieval to solve the subagent context problem
 ---
 
-# Iterative Retrieval Pattern
+# 迭代检索模式
 
-Solves the "context problem" in multi-agent workflows where subagents don't know what context they need until they start working.
+解决多 Agent 工作流中的"上下文问题"，即子 Agent 在开始工作前不知道需要什么上下文。
 
-## When to Activate
+## 激活时机
 
-- Spawning subagents that need codebase context they cannot predict upfront
-- Building multi-agent workflows where context is progressively refined
-- Encountering "context too large" or "missing context" failures in agent tasks
-- Designing RAG-like retrieval pipelines for code exploration
-- Optimizing token usage in agent orchestration
+- 启动需要代码库上下文但无法预先确定的子 Agent
+- 构建上下文逐步精化的多 Agent 工作流
+- 遇到"上下文过大"或"缺少上下文"的 Agent 任务失败
+- 设计类似 RAG 的代码探索检索流水线
+- 优化 Agent 编排中的 token 使用
 
-## The Problem
+## 问题
 
-Subagents are spawned with limited context. They don't know:
-- Which files contain relevant code
-- What patterns exist in the codebase
-- What terminology the project uses
+子 Agent 启动时上下文有限，它们不知道：
+- 哪些文件包含相关代码
+- 代码库中存在哪些模式
+- 项目使用什么术语
 
-Standard approaches fail:
-- **Send everything**: Exceeds context limits
-- **Send nothing**: Agent lacks critical information
-- **Guess what's needed**: Often wrong
+标准方法会失败：
+- **发送所有内容**：超出上下文限制
+- **什么都不发送**：Agent 缺少关键信息
+- **猜测需要什么**：经常猜错
 
-## The Solution: Iterative Retrieval
+## 解决方案：迭代检索
 
-A 4-phase loop that progressively refines context:
+一个 4 阶段循环，逐步精化上下文：
 
 ```
 ┌─────────────────────────────────────────────┐
 │                                             │
 │   ┌──────────┐      ┌──────────┐            │
-│   │ DISPATCH │─────▶│ EVALUATE │            │
+│   │  分发    │─────▶│  评估    │            │
 │   └──────────┘      └──────────┘            │
 │        ▲                  │                 │
 │        │                  ▼                 │
 │   ┌──────────┐      ┌──────────┐            │
-│   │   LOOP   │◀─────│  REFINE  │            │
+│   │   循环   │◀─────│  精化    │            │
 │   └──────────┘      └──────────┘            │
 │                                             │
-│        Max 3 cycles, then proceed           │
+│        最多 3 轮，然后继续                    │
 └─────────────────────────────────────────────┘
 ```
 
-### Phase 1: DISPATCH
+### 阶段 1：分发（DISPATCH）
 
-Initial broad query to gather candidate files:
+初始广泛查询以收集候选文件：
 
 ```javascript
-// Start with high-level intent
+// 从高层意图开始
 const initialQuery = {
   patterns: ['src/**/*.ts', 'lib/**/*.ts'],
   keywords: ['authentication', 'user', 'session'],
   excludes: ['*.test.ts', '*.spec.ts']
 };
 
-// Dispatch to retrieval agent
+// 分发给检索 Agent
 const candidates = await retrieveFiles(initialQuery);
 ```
 
-### Phase 2: EVALUATE
+### 阶段 2：评估（EVALUATE）
 
-Assess retrieved content for relevance:
+评估检索内容的相关性：
 
 ```javascript
 function evaluateRelevance(files, task) {
@@ -78,32 +78,32 @@ function evaluateRelevance(files, task) {
 }
 ```
 
-Scoring criteria:
-- **High (0.8-1.0)**: Directly implements target functionality
-- **Medium (0.5-0.7)**: Contains related patterns or types
-- **Low (0.2-0.4)**: Tangentially related
-- **None (0-0.2)**: Not relevant, exclude
+评分标准：
+- **高 (0.8-1.0)**：直接实现目标功能
+- **中 (0.5-0.7)**：包含相关模式或类型
+- **低 (0.2-0.4)**：有一定关联
+- **无 (0-0.2)**：不相关，排除
 
-### Phase 3: REFINE
+### 阶段 3：精化（REFINE）
 
-Update search criteria based on evaluation:
+根据评估更新搜索条件：
 
 ```javascript
 function refineQuery(evaluation, previousQuery) {
   return {
-    // Add new patterns discovered in high-relevance files
+    // 添加在高相关性文件中发现的新模式
     patterns: [...previousQuery.patterns, ...extractPatterns(evaluation)],
 
-    // Add terminology found in codebase
+    // 添加代码库中发现的术语
     keywords: [...previousQuery.keywords, ...extractKeywords(evaluation)],
 
-    // Exclude confirmed irrelevant paths
+    // 排除确认不相关的路径
     excludes: [...previousQuery.excludes, ...evaluation
       .filter(e => e.relevance < 0.2)
       .map(e => e.path)
     ],
 
-    // Target specific gaps
+    // 针对特定缺口
     focusAreas: evaluation
       .flatMap(e => e.missingContext)
       .filter(unique)
@@ -111,9 +111,9 @@ function refineQuery(evaluation, previousQuery) {
 }
 ```
 
-### Phase 4: LOOP
+### 阶段 4：循环（LOOP）
 
-Repeat with refined criteria (max 3 cycles):
+使用精化后的条件重复（最多 3 轮）：
 
 ```javascript
 async function iterativeRetrieve(task, maxCycles = 3) {
@@ -124,13 +124,13 @@ async function iterativeRetrieve(task, maxCycles = 3) {
     const candidates = await retrieveFiles(query);
     const evaluation = evaluateRelevance(candidates, task);
 
-    // Check if we have sufficient context
+    // 检查是否有足够的上下文
     const highRelevance = evaluation.filter(e => e.relevance >= 0.7);
     if (highRelevance.length >= 3 && !hasCriticalGaps(evaluation)) {
       return highRelevance;
     }
 
-    // Refine and continue
+    // 精化并继续
     query = refineQuery(evaluation, query);
     bestContext = mergeContext(bestContext, highRelevance);
   }
@@ -139,72 +139,72 @@ async function iterativeRetrieve(task, maxCycles = 3) {
 }
 ```
 
-## Practical Examples
+## 实践示例
 
-### Example 1: Bug Fix Context
-
-```
-Task: "Fix the authentication token expiry bug"
-
-Cycle 1:
-  DISPATCH: Search for "token", "auth", "expiry" in src/**
-  EVALUATE: Found auth.ts (0.9), tokens.ts (0.8), user.ts (0.3)
-  REFINE: Add "refresh", "jwt" keywords; exclude user.ts
-
-Cycle 2:
-  DISPATCH: Search refined terms
-  EVALUATE: Found session-manager.ts (0.95), jwt-utils.ts (0.85)
-  REFINE: Sufficient context (2 high-relevance files)
-
-Result: auth.ts, tokens.ts, session-manager.ts, jwt-utils.ts
-```
-
-### Example 2: Feature Implementation
+### 示例 1：Bug 修复上下文
 
 ```
-Task: "Add rate limiting to API endpoints"
+任务："修复认证令牌过期 bug"
 
-Cycle 1:
-  DISPATCH: Search "rate", "limit", "api" in routes/**
-  EVALUATE: No matches - codebase uses "throttle" terminology
-  REFINE: Add "throttle", "middleware" keywords
+第 1 轮：
+  分发：在 src/** 中搜索 "token"、"auth"、"expiry"
+  评估：发现 auth.ts (0.9)、tokens.ts (0.8)、user.ts (0.3)
+  精化：添加 "refresh"、"jwt" 关键词；排除 user.ts
 
-Cycle 2:
-  DISPATCH: Search refined terms
-  EVALUATE: Found throttle.ts (0.9), middleware/index.ts (0.7)
-  REFINE: Need router patterns
+第 2 轮：
+  分发：搜索精化后的术语
+  评估：发现 session-manager.ts (0.95)、jwt-utils.ts (0.85)
+  精化：上下文充足（2 个高相关性文件）
 
-Cycle 3:
-  DISPATCH: Search "router", "express" patterns
-  EVALUATE: Found router-setup.ts (0.8)
-  REFINE: Sufficient context
-
-Result: throttle.ts, middleware/index.ts, router-setup.ts
+结果：auth.ts、tokens.ts、session-manager.ts、jwt-utils.ts
 ```
 
-## Integration with Agents
+### 示例 2：功能实现
 
-Use in agent prompts:
+```
+任务："为 API 端点添加速率限制"
+
+第 1 轮：
+  分发：在 routes/** 中搜索 "rate"、"limit"、"api"
+  评估：无匹配 - 代码库使用 "throttle" 术语
+  精化：添加 "throttle"、"middleware" 关键词
+
+第 2 轮：
+  分发：搜索精化后的术语
+  评估：发现 throttle.ts (0.9)、middleware/index.ts (0.7)
+  精化：需要路由器模式
+
+第 3 轮：
+  分发：搜索 "router"、"express" 模式
+  评估：发现 router-setup.ts (0.8)
+  精化：上下文充足
+
+结果：throttle.ts、middleware/index.ts、router-setup.ts
+```
+
+## 与 Agent 集成
+
+在 Agent 提示词中使用：
 
 ```markdown
-When retrieving context for this task:
-1. Start with broad keyword search
-2. Evaluate each file's relevance (0-1 scale)
-3. Identify what context is still missing
-4. Refine search criteria and repeat (max 3 cycles)
-5. Return files with relevance >= 0.7
+为此任务检索上下文时：
+1. 从广泛的关键词搜索开始
+2. 评估每个文件的相关性（0-1 分）
+3. 识别仍然缺少什么上下文
+4. 精化搜索条件并重复（最多 3 轮）
+5. 返回相关性 >= 0.7 的文件
 ```
 
-## Best Practices
+## 最佳实践
 
-1. **Start broad, narrow progressively** - Don't over-specify initial queries
-2. **Learn codebase terminology** - First cycle often reveals naming conventions
-3. **Track what's missing** - Explicit gap identification drives refinement
-4. **Stop at "good enough"** - 3 high-relevance files beats 10 mediocre ones
-5. **Exclude confidently** - Low-relevance files won't become relevant
+1. **从广到窄，逐步精化** - 初始查询不要过度限定
+2. **学习代码库术语** - 第一轮通常会揭示命名约定
+3. **追踪缺失内容** - 明确的缺口识别驱动精化
+4. **适可而止** - 3 个高相关性文件胜过 10 个平庸文件
+5. **果断排除** - 低相关性文件不会变得相关
 
-## Related
+## 相关资源
 
-- [The Longform Guide](https://x.com/affaanmustafa/status/2014040193557471352) - Subagent orchestration section
-- `continuous-learning` skill - For patterns that improve over time
-- Agent definitions in `~/.claude/agents/`
+- [The Longform Guide](https://x.com/affaanmustafa/status/2014040193557471352) - 子 Agent 编排部分
+- `continuous-learning` skill - 用于随时间改进的模式
+- `~/.codebuddy/agents/` 中的 Agent 定义

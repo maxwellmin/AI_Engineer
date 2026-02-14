@@ -1,3 +1,11 @@
+---
+description: 
+alwaysApply: false
+enabled: false
+updatedAt: 2026-02-14T06:45:51.669Z
+provider: 
+---
+
 # Rule 示例模板
 
 ## 说明

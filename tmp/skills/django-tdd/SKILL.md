@@ -3,38 +3,38 @@ name: django-tdd
 description: Django testing strategies with pytest-django, TDD methodology, factory_boy, mocking, coverage, and testing Django REST Framework APIs.
 ---
 
-# Django Testing with TDD
+# Django 测试驱动开发
 
-Test-driven development for Django applications using pytest, factory_boy, and Django REST Framework.
+使用 pytest、factory_boy 和 Django REST Framework 进行 Django 应用的测试驱动开发。
 
-## When to Activate
+## 激活时机
 
-- Writing new Django applications
-- Implementing Django REST Framework APIs
-- Testing Django models, views, and serializers
-- Setting up testing infrastructure for Django projects
+- 编写新的 Django 应用程序
+- 实现 Django REST Framework API
+- 测试 Django 模型、视图和序列化器
+- 为 Django 项目设置测试基础设施
 
-## TDD Workflow for Django
+## Django TDD 工作流
 
-### Red-Green-Refactor Cycle
+### 红-绿-重构循环
 
 ```python
-# Step 1: RED - Write failing test
+# 第一步：红 - 编写失败的测试
 def test_user_creation():
     user = User.objects.create_user(email='test@example.com', password='testpass123')
     assert user.email == 'test@example.com'
     assert user.check_password('testpass123')
     assert not user.is_staff
 
-# Step 2: GREEN - Make test pass
-# Create User model or factory
+# 第二步：绿 - 使测试通过
+# 创建 User 模型或工厂
 
-# Step 3: REFACTOR - Improve while keeping tests green
+# 第三步：重构 - 在保持测试通过的同时改进代码
 ```
 
-## Setup
+## 配置
 
-### pytest Configuration
+### pytest 配置
 
 ```ini
 # pytest.ini
@@ -52,11 +52,11 @@ addopts =
     --cov-report=term-missing
     --strict-markers
 markers =
-    slow: marks tests as slow
-    integration: marks tests as integration tests
+    slow: 标记为慢速测试
+    integration: 标记为集成测试
 ```
 
-### Test Settings
+### 测试配置
 
 ```python
 # config/settings/test.py
@@ -70,7 +70,7 @@ DATABASES = {
     }
 }
 
-# Disable migrations for speed
+# 禁用迁移以提高速度
 class DisableMigrations:
     def __contains__(self, item):
         return True
@@ -80,15 +80,15 @@ class DisableMigrations:
 
 MIGRATION_MODULES = DisableMigrations()
 
-# Faster password hashing
+# 更快的密码哈希
 PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.MD5PasswordHasher',
 ]
 
-# Email backend
+# 邮件后端
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-# Celery always eager
+# Celery 立即执行
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
 ```
@@ -105,12 +105,12 @@ User = get_user_model()
 
 @pytest.fixture(autouse=True)
 def timezone_settings(settings):
-    """Ensure consistent timezone."""
+    """确保时区一致。"""
     settings.TIME_ZONE = 'UTC'
 
 @pytest.fixture
 def user(db):
-    """Create a test user."""
+    """创建测试用户。"""
     return User.objects.create_user(
         email='test@example.com',
         password='testpass123',
@@ -119,7 +119,7 @@ def user(db):
 
 @pytest.fixture
 def admin_user(db):
-    """Create an admin user."""
+    """创建管理员用户。"""
     return User.objects.create_superuser(
         email='admin@example.com',
         password='adminpass123',
@@ -128,26 +128,26 @@ def admin_user(db):
 
 @pytest.fixture
 def authenticated_client(client, user):
-    """Return authenticated client."""
+    """返回已认证的客户端。"""
     client.force_login(user)
     return client
 
 @pytest.fixture
 def api_client():
-    """Return DRF API client."""
+    """返回 DRF API 客户端。"""
     from rest_framework.test import APIClient
     return APIClient()
 
 @pytest.fixture
 def authenticated_api_client(api_client, user):
-    """Return authenticated API client."""
+    """返回已认证的 API 客户端。"""
     api_client.force_authenticate(user=user)
     return api_client
 ```
 
 ## Factory Boy
 
-### Factory Setup
+### 工厂配置
 
 ```python
 # tests/factories.py
@@ -160,7 +160,7 @@ from apps.products.models import Product, Category
 User = get_user_model()
 
 class UserFactory(factory.django.DjangoModelFactory):
-    """Factory for User model."""
+    """User 模型的工厂。"""
 
     class Meta:
         model = User
@@ -173,7 +173,7 @@ class UserFactory(factory.django.DjangoModelFactory):
     is_active = True
 
 class CategoryFactory(factory.django.DjangoModelFactory):
-    """Factory for Category model."""
+    """Category 模型的工厂。"""
 
     class Meta:
         model = Category
@@ -183,7 +183,7 @@ class CategoryFactory(factory.django.DjangoModelFactory):
     description = factory.Faker('text')
 
 class ProductFactory(factory.django.DjangoModelFactory):
-    """Factory for Product model."""
+    """Product 模型的工厂。"""
 
     class Meta:
         model = Product
@@ -199,7 +199,7 @@ class ProductFactory(factory.django.DjangoModelFactory):
 
     @factory.post_generation
     def tags(self, create, extracted, **kwargs):
-        """Add tags to product."""
+        """为产品添加标签。"""
         if not create:
             return
         if extracted:
@@ -207,7 +207,7 @@ class ProductFactory(factory.django.DjangoModelFactory):
                 self.tags.add(tag)
 ```
 
-### Using Factories
+### 使用工厂
 
 ```python
 # tests/test_models.py
@@ -215,27 +215,27 @@ import pytest
 from tests.factories import ProductFactory, UserFactory
 
 def test_product_creation():
-    """Test product creation using factory."""
+    """使用工厂测试产品创建。"""
     product = ProductFactory(price=100.00, stock=50)
     assert product.price == 100.00
     assert product.stock == 50
     assert product.is_active is True
 
 def test_product_with_tags():
-    """Test product with tags."""
+    """测试带标签的产品。"""
     tags = [TagFactory(name='electronics'), TagFactory(name='new')]
     product = ProductFactory(tags=tags)
     assert product.tags.count() == 2
 
 def test_multiple_products():
-    """Test creating multiple products."""
+    """测试创建多个产品。"""
     products = ProductFactory.create_batch(10)
     assert len(products) == 10
 ```
 
-## Model Testing
+## 模型测试
 
-### Model Tests
+### 模型测试用例
 
 ```python
 # tests/test_models.py
@@ -244,10 +244,10 @@ from django.core.exceptions import ValidationError
 from tests.factories import UserFactory, ProductFactory
 
 class TestUserModel:
-    """Test User model."""
+    """测试 User 模型。"""
 
     def test_create_user(self, db):
-        """Test creating a regular user."""
+        """测试创建普通用户。"""
         user = UserFactory(email='test@example.com')
         assert user.email == 'test@example.com'
         assert user.check_password('testpass123')
@@ -255,7 +255,7 @@ class TestUserModel:
         assert not user.is_superuser
 
     def test_create_superuser(self, db):
-        """Test creating a superuser."""
+        """测试创建超级用户。"""
         user = UserFactory(
             email='admin@example.com',
             is_staff=True,
@@ -265,33 +265,33 @@ class TestUserModel:
         assert user.is_superuser
 
     def test_user_str(self, db):
-        """Test user string representation."""
+        """测试用户字符串表示。"""
         user = UserFactory(email='test@example.com')
         assert str(user) == 'test@example.com'
 
 class TestProductModel:
-    """Test Product model."""
+    """测试 Product 模型。"""
 
     def test_product_creation(self, db):
-        """Test creating a product."""
+        """测试创建产品。"""
         product = ProductFactory()
         assert product.id is not None
         assert product.is_active is True
         assert product.created_at is not None
 
     def test_product_slug_generation(self, db):
-        """Test automatic slug generation."""
+        """测试自动生成 slug。"""
         product = ProductFactory(name='Test Product')
         assert product.slug == 'test-product'
 
     def test_product_price_validation(self, db):
-        """Test price cannot be negative."""
+        """测试价格不能为负数。"""
         product = ProductFactory(price=-10)
         with pytest.raises(ValidationError):
             product.full_clean()
 
     def test_product_manager_active(self, db):
-        """Test active manager method."""
+        """测试 active 管理器方法。"""
         ProductFactory.create_batch(5, is_active=True)
         ProductFactory.create_batch(3, is_active=False)
 
@@ -299,19 +299,19 @@ class TestProductModel:
         assert active_count == 5
 
     def test_product_stock_management(self, db):
-        """Test stock management."""
+        """测试库存管理。"""
         product = ProductFactory(stock=10)
         product.reduce_stock(5)
         product.refresh_from_db()
         assert product.stock == 5
 
         with pytest.raises(ValueError):
-            product.reduce_stock(10)  # Not enough stock
+            product.reduce_stock(10)  # 库存不足
 ```
 
-## View Testing
+## 视图测试
 
-### Django View Testing
+### Django 视图测试
 
 ```python
 # tests/test_views.py
@@ -320,10 +320,10 @@ from django.urls import reverse
 from tests.factories import ProductFactory, UserFactory
 
 class TestProductViews:
-    """Test product views."""
+    """测试产品视图。"""
 
     def test_product_list(self, client, db):
-        """Test product list view."""
+        """测试产品列表视图。"""
         ProductFactory.create_batch(10)
 
         response = client.get(reverse('products:list'))
@@ -332,7 +332,7 @@ class TestProductViews:
         assert len(response.context['products']) == 10
 
     def test_product_detail(self, client, db):
-        """Test product detail view."""
+        """测试产品详情视图。"""
         product = ProductFactory()
 
         response = client.get(reverse('products:detail', kwargs={'slug': product.slug}))
@@ -341,20 +341,20 @@ class TestProductViews:
         assert response.context['product'] == product
 
     def test_product_create_requires_login(self, client, db):
-        """Test product creation requires authentication."""
+        """测试创建产品需要登录。"""
         response = client.get(reverse('products:create'))
 
         assert response.status_code == 302
         assert response.url.startswith('/accounts/login/')
 
     def test_product_create_authenticated(self, authenticated_client, db):
-        """Test product creation as authenticated user."""
+        """测试已认证用户访问创建产品页面。"""
         response = authenticated_client.get(reverse('products:create'))
 
         assert response.status_code == 200
 
     def test_product_create_post(self, authenticated_client, db, category):
-        """Test creating a product via POST."""
+        """测试通过 POST 创建产品。"""
         data = {
             'name': 'Test Product',
             'description': 'A test product',
@@ -369,9 +369,9 @@ class TestProductViews:
         assert Product.objects.filter(name='Test Product').exists()
 ```
 
-## DRF API Testing
+## DRF API 测试
 
-### Serializer Testing
+### 序列化器测试
 
 ```python
 # tests/test_serializers.py
@@ -381,10 +381,10 @@ from apps.products.serializers import ProductSerializer
 from tests.factories import ProductFactory
 
 class TestProductSerializer:
-    """Test ProductSerializer."""
+    """测试 ProductSerializer。"""
 
     def test_serialize_product(self, db):
-        """Test serializing a product."""
+        """测试序列化产品。"""
         product = ProductFactory()
         serializer = ProductSerializer(product)
 
@@ -395,7 +395,7 @@ class TestProductSerializer:
         assert data['price'] == str(product.price)
 
     def test_deserialize_product(self, db):
-        """Test deserializing product data."""
+        """测试反序列化产品数据。"""
         data = {
             'name': 'Test Product',
             'description': 'Test description',
@@ -413,7 +413,7 @@ class TestProductSerializer:
         assert float(product.price) == 99.99
 
     def test_price_validation(self, db):
-        """Test price validation."""
+        """测试价格验证。"""
         data = {
             'name': 'Test Product',
             'price': '-10.00',
@@ -426,7 +426,7 @@ class TestProductSerializer:
         assert 'price' in serializer.errors
 
     def test_stock_validation(self, db):
-        """Test stock cannot be negative."""
+        """测试库存不能为负数。"""
         data = {
             'name': 'Test Product',
             'price': '99.99',
@@ -439,7 +439,7 @@ class TestProductSerializer:
         assert 'stock' in serializer.errors
 ```
 
-### API ViewSet Testing
+### API ViewSet 测试
 
 ```python
 # tests/test_api.py
@@ -450,15 +450,15 @@ from django.urls import reverse
 from tests.factories import ProductFactory, UserFactory
 
 class TestProductAPI:
-    """Test Product API endpoints."""
+    """测试 Product API 端点。"""
 
     @pytest.fixture
     def api_client(self):
-        """Return API client."""
+        """返回 API 客户端。"""
         return APIClient()
 
     def test_list_products(self, api_client, db):
-        """Test listing products."""
+        """测试列出产品。"""
         ProductFactory.create_batch(10)
 
         url = reverse('api:product-list')
@@ -468,7 +468,7 @@ class TestProductAPI:
         assert response.data['count'] == 10
 
     def test_retrieve_product(self, api_client, db):
-        """Test retrieving a product."""
+        """测试获取单个产品。"""
         product = ProductFactory()
 
         url = reverse('api:product-detail', kwargs={'pk': product.id})
@@ -478,7 +478,7 @@ class TestProductAPI:
         assert response.data['id'] == product.id
 
     def test_create_product_unauthorized(self, api_client, db):
-        """Test creating product without authentication."""
+        """测试未认证创建产品。"""
         url = reverse('api:product-list')
         data = {'name': 'Test Product', 'price': '99.99'}
 
@@ -487,7 +487,7 @@ class TestProductAPI:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_create_product_authorized(self, authenticated_api_client, db):
-        """Test creating product as authenticated user."""
+        """测试已认证用户创建产品。"""
         url = reverse('api:product-list')
         data = {
             'name': 'Test Product',
@@ -502,7 +502,7 @@ class TestProductAPI:
         assert response.data['name'] == 'Test Product'
 
     def test_update_product(self, authenticated_api_client, db):
-        """Test updating a product."""
+        """测试更新产品。"""
         product = ProductFactory(created_by=authenticated_api_client.user)
 
         url = reverse('api:product-detail', kwargs={'pk': product.id})
@@ -514,7 +514,7 @@ class TestProductAPI:
         assert response.data['name'] == 'Updated Product'
 
     def test_delete_product(self, authenticated_api_client, db):
-        """Test deleting a product."""
+        """测试删除产品。"""
         product = ProductFactory(created_by=authenticated_api_client.user)
 
         url = reverse('api:product-detail', kwargs={'pk': product.id})
@@ -523,7 +523,7 @@ class TestProductAPI:
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
     def test_filter_products_by_price(self, api_client, db):
-        """Test filtering products by price."""
+        """测试按价格过滤产品。"""
         ProductFactory(price=50)
         ProductFactory(price=150)
 
@@ -534,7 +534,7 @@ class TestProductAPI:
         assert response.data['count'] == 1
 
     def test_search_products(self, api_client, db):
-        """Test searching products."""
+        """测试搜索产品。"""
         ProductFactory(name='Apple iPhone')
         ProductFactory(name='Samsung Galaxy')
 
@@ -545,9 +545,9 @@ class TestProductAPI:
         assert response.data['count'] == 1
 ```
 
-## Mocking and Patching
+## Mock 和 Patch
 
-### Mocking External Services
+### Mock 外部服务
 
 ```python
 # tests/test_views.py
@@ -555,12 +555,12 @@ from unittest.mock import patch, Mock
 import pytest
 
 class TestPaymentView:
-    """Test payment view with mocked payment gateway."""
+    """测试支付视图，使用 mock 支付网关。"""
 
     @patch('apps.payments.services.stripe')
     def test_successful_payment(self, mock_stripe, client, user, product):
-        """Test successful payment with mocked Stripe."""
-        # Configure mock
+        """测试成功支付，使用 mock Stripe。"""
+        # 配置 mock
         mock_stripe.Charge.create.return_value = {
             'id': 'ch_123',
             'status': 'succeeded',
@@ -578,7 +578,7 @@ class TestPaymentView:
 
     @patch('apps.payments.services.stripe')
     def test_failed_payment(self, mock_stripe, client, user, product):
-        """Test failed payment."""
+        """测试支付失败。"""
         mock_stripe.Charge.create.side_effect = Exception('Card declined')
 
         client.force_login(user)
@@ -591,7 +591,7 @@ class TestPaymentView:
         assert 'error' in response.url
 ```
 
-### Mocking Email Sending
+### Mock 邮件发送
 
 ```python
 # tests/test_email.py
@@ -600,7 +600,7 @@ from django.test import override_settings
 
 @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
 def test_order_confirmation_email(db, order):
-    """Test order confirmation email."""
+    """测试订单确认邮件。"""
     order.send_confirmation_email()
 
     assert len(mail.outbox) == 1
@@ -608,9 +608,9 @@ def test_order_confirmation_email(db, order):
     assert 'Order Confirmation' in mail.outbox[0].subject
 ```
 
-## Integration Testing
+## 集成测试
 
-### Full Flow Testing
+### 完整流程测试
 
 ```python
 # tests/test_integration.py
@@ -619,11 +619,11 @@ from django.urls import reverse
 from tests.factories import UserFactory, ProductFactory
 
 class TestCheckoutFlow:
-    """Test complete checkout flow."""
+    """测试完整结账流程。"""
 
     def test_guest_to_purchase_flow(self, client, db):
-        """Test complete flow from guest to purchase."""
-        # Step 1: Register
+        """测试从访客到购买的完整流程。"""
+        # 第一步：注册
         response = client.post(reverse('users:register'), {
             'email': 'test@example.com',
             'password': 'testpass123',
@@ -631,31 +631,31 @@ class TestCheckoutFlow:
         })
         assert response.status_code == 302
 
-        # Step 2: Login
+        # 第二步：登录
         response = client.post(reverse('users:login'), {
             'email': 'test@example.com',
             'password': 'testpass123',
         })
         assert response.status_code == 302
 
-        # Step 3: Browse products
+        # 第三步：浏览产品
         product = ProductFactory(price=100)
         response = client.get(reverse('products:detail', kwargs={'slug': product.slug}))
         assert response.status_code == 200
 
-        # Step 4: Add to cart
+        # 第四步：添加到购物车
         response = client.post(reverse('cart:add'), {
             'product_id': product.id,
             'quantity': 1,
         })
         assert response.status_code == 302
 
-        # Step 5: Checkout
+        # 第五步：结账
         response = client.get(reverse('checkout:review'))
         assert response.status_code == 200
         assert product.name in response.content.decode()
 
-        # Step 6: Complete purchase
+        # 第六步：完成购买
         with patch('apps.checkout.services.process_payment') as mock_payment:
             mock_payment.return_value = True
             response = client.post(reverse('checkout:complete'))
@@ -664,65 +664,65 @@ class TestCheckoutFlow:
         assert Order.objects.filter(user__email='test@example.com').exists()
 ```
 
-## Testing Best Practices
+## 测试最佳实践
 
-### DO
+### 应该做的
 
-- **Use factories**: Instead of manual object creation
-- **One assertion per test**: Keep tests focused
-- **Descriptive test names**: `test_user_cannot_delete_others_post`
-- **Test edge cases**: Empty inputs, None values, boundary conditions
-- **Mock external services**: Don't depend on external APIs
-- **Use fixtures**: Eliminate duplication
-- **Test permissions**: Ensure authorization works
-- **Keep tests fast**: Use `--reuse-db` and `--nomigrations`
+- **使用工厂**：代替手动创建对象
+- **每个测试一个断言**：保持测试专注
+- **描述性的测试名称**：`test_user_cannot_delete_others_post`
+- **测试边界情况**：空输入、None 值、边界条件
+- **Mock 外部服务**：不要依赖外部 API
+- **使用 fixtures**：消除重复
+- **测试权限**：确保授权有效
+- **保持测试快速**：使用 `--reuse-db` 和 `--nomigrations`
 
-### DON'T
+### 不应该做的
 
-- **Don't test Django internals**: Trust Django to work
-- **Don't test third-party code**: Trust libraries to work
-- **Don't ignore failing tests**: All tests must pass
-- **Don't make tests dependent**: Tests should run in any order
-- **Don't over-mock**: Mock only external dependencies
-- **Don't test private methods**: Test public interface
-- **Don't use production database**: Always use test database
+- **不要测试 Django 内部**：信任 Django 的工作
+- **不要测试第三方代码**：信任库的工作
+- **不要忽略失败的测试**：所有测试必须通过
+- **不要让测试相互依赖**：测试应该可以任意顺序运行
+- **不要过度 mock**：只 mock 外部依赖
+- **不要测试私有方法**：测试公共接口
+- **不要使用生产数据库**：始终使用测试数据库
 
-## Coverage
+## 覆盖率
 
-### Coverage Configuration
+### 覆盖率配置
 
 ```bash
-# Run tests with coverage
+# 运行测试并生成覆盖率报告
 pytest --cov=apps --cov-report=html --cov-report=term-missing
 
-# Generate HTML report
+# 生成 HTML 报告
 open htmlcov/index.html
 ```
 
-### Coverage Goals
+### 覆盖率目标
 
-| Component | Target Coverage |
-|-----------|-----------------|
-| Models | 90%+ |
-| Serializers | 85%+ |
-| Views | 80%+ |
-| Services | 90%+ |
-| Utilities | 80%+ |
-| Overall | 80%+ |
+| 组件 | 目标覆盖率 |
+|------|------------|
+| 模型 | 90%+ |
+| 序列化器 | 85%+ |
+| 视图 | 80%+ |
+| 服务层 | 90%+ |
+| 工具类 | 80%+ |
+| 整体 | 80%+ |
 
-## Quick Reference
+## 快速参考
 
-| Pattern | Usage |
-|---------|-------|
-| `@pytest.mark.django_db` | Enable database access |
-| `client` | Django test client |
-| `api_client` | DRF API client |
-| `factory.create_batch(n)` | Create multiple objects |
-| `patch('module.function')` | Mock external dependencies |
-| `override_settings` | Temporarily change settings |
-| `force_authenticate()` | Bypass authentication in tests |
-| `assertRedirects` | Check for redirects |
-| `assertTemplateUsed` | Verify template usage |
-| `mail.outbox` | Check sent emails |
+| 模式 | 用途 |
+|------|------|
+| `@pytest.mark.django_db` | 启用数据库访问 |
+| `client` | Django 测试客户端 |
+| `api_client` | DRF API 客户端 |
+| `factory.create_batch(n)` | 创建多个对象 |
+| `patch('module.function')` | Mock 外部依赖 |
+| `override_settings` | 临时更改设置 |
+| `force_authenticate()` | 在测试中绕过认证 |
+| `assertRedirects` | 检查重定向 |
+| `assertTemplateUsed` | 验证模板使用 |
+| `mail.outbox` | 检查发送的邮件 |
 
-Remember: Tests are documentation. Good tests explain how your code should work. Keep them simple, readable, and maintainable.
+记住：测试即文档。好的测试解释代码应该如何工作。保持测试简单、可读、可维护。

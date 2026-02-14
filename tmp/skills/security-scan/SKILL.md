@@ -1,122 +1,122 @@
 ---
 name: security-scan
-description: Scan your Claude Code configuration (.claude/ directory) for security vulnerabilities, misconfigurations, and injection risks using AgentShield. Checks CLAUDE.md, settings.json, MCP servers, hooks, and agent definitions.
+description: Scan your CodeBuddy Code configuration (~/.codebuddy/ directory) for security vulnerabilities, misconfigurations, and injection risks using AgentShield. Checks CODEBUDDY.md, settings.json, MCP servers, hooks, and agent definitions.
 ---
 
-# Security Scan Skill
+# 安全扫描技能
 
-Audit your Claude Code configuration for security issues using [AgentShield](https://github.com/affaan-m/agentshield).
+使用 [AgentShield](https://github.com/affaan-m/agentshield) 审计您的 CodeBuddy Code 配置中的安全问题。
 
-## When to Activate
+## 何时激活
 
-- Setting up a new Claude Code project
-- After modifying `.claude/settings.json`, `CLAUDE.md`, or MCP configs
-- Before committing configuration changes
-- When onboarding to a new repository with existing Claude Code configs
-- Periodic security hygiene checks
+- 设置新的 CodeBuddy Code 项目
+- 修改 `~/.codebuddy/settings.json`、`CODEBUDDY.md` 或 MCP 配置后
+- 提交配置更改前
+- 接入具有现有 CodeBuddy Code 配置的新仓库时
+- 定期安全卫生检查
 
-## What It Scans
+## 扫描内容
 
-| File | Checks |
+| 文件 | 检查项 |
 |------|--------|
-| `CLAUDE.md` | Hardcoded secrets, auto-run instructions, prompt injection patterns |
-| `settings.json` | Overly permissive allow lists, missing deny lists, dangerous bypass flags |
-| `mcp.json` | Risky MCP servers, hardcoded env secrets, npx supply chain risks |
-| `hooks/` | Command injection via interpolation, data exfiltration, silent error suppression |
-| `agents/*.md` | Unrestricted tool access, prompt injection surface, missing model specs |
+| `CODEBUDDY.md` | 硬编码密钥、自动运行指令、提示注入模式 |
+| `settings.json` | 权限过宽的允许列表、缺少拒绝列表、危险绕过标志 |
+| `mcp.json` | 风险 MCP 服务器、硬编码环境密钥、npx 供应链风险 |
+| `hooks/` | 通过插值的命令注入、数据泄露、静默错误抑制 |
+| `agents/*.md` | 不受限制的工具访问、提示注入面、缺少模型规格 |
 
-## Prerequisites
+## 先决条件
 
-AgentShield must be installed. Check and install if needed:
+必须安装 AgentShield。检查并按需安装：
 
 ```bash
-# Check if installed
+# 检查是否已安装
 npx ecc-agentshield --version
 
-# Install globally (recommended)
+# 全局安装（推荐）
 npm install -g ecc-agentshield
 
-# Or run directly via npx (no install needed)
+# 或直接通过 npx 运行（无需安装）
 npx ecc-agentshield scan .
 ```
 
-## Usage
+## 使用方法
 
-### Basic Scan
+### 基本扫描
 
-Run against the current project's `.claude/` directory:
+针对当前项目的 `~/.codebuddy/` 目录运行：
 
 ```bash
-# Scan current project
+# 扫描当前项目
 npx ecc-agentshield scan
 
-# Scan a specific path
-npx ecc-agentshield scan --path /path/to/.claude
+# 扫描指定路径
+npx ecc-agentshield scan --path /path/to/.codebuddy
 
-# Scan with minimum severity filter
+# 使用最低严重级别过滤
 npx ecc-agentshield scan --min-severity medium
 ```
 
-### Output Formats
+### 输出格式
 
 ```bash
-# Terminal output (default) — colored report with grade
+# 终端输出（默认）— 带评分的彩色报告
 npx ecc-agentshield scan
 
-# JSON — for CI/CD integration
+# JSON — 用于 CI/CD 集成
 npx ecc-agentshield scan --format json
 
-# Markdown — for documentation
+# Markdown — 用于文档
 npx ecc-agentshield scan --format markdown
 
-# HTML — self-contained dark-theme report
+# HTML — 自包含暗色主题报告
 npx ecc-agentshield scan --format html > security-report.html
 ```
 
-### Auto-Fix
+### 自动修复
 
-Apply safe fixes automatically (only fixes marked as auto-fixable):
+自动应用安全修复（仅修复标记为可自动修复的项目）：
 
 ```bash
 npx ecc-agentshield scan --fix
 ```
 
-This will:
-- Replace hardcoded secrets with environment variable references
-- Tighten wildcard permissions to scoped alternatives
-- Never modify manual-only suggestions
+这将：
+- 用环境变量引用替换硬编码密钥
+- 将通配符权限收紧为限定范围的替代方案
+- 永远不修改仅限手动处理建议
 
-### Opus 4.6 Deep Analysis
+### GLM-5.0-reasoning 深度分析
 
-Run the adversarial three-agent pipeline for deeper analysis:
+运行对抗性三代理流水线进行更深入的分析：
 
 ```bash
-# Requires ANTHROPIC_API_KEY
+# 需要 ANTHROPIC_API_KEY
 export ANTHROPIC_API_KEY=your-key
 npx ecc-agentshield scan --opus --stream
 ```
 
-This runs:
-1. **Attacker (Red Team)** — finds attack vectors
-2. **Defender (Blue Team)** — recommends hardening
-3. **Auditor (Final Verdict)** — synthesizes both perspectives
+这将运行：
+1. **攻击者（红队）** — 发现攻击向量
+2. **防御者（蓝队）** — 推荐加固措施
+3. **审计者（最终裁决）** — 综合双方视角
 
-### Initialize Secure Config
+### 初始化安全配置
 
-Scaffold a new secure `.claude/` configuration from scratch:
+从零开始搭建新的安全 `~/.codebuddy/` 配置：
 
 ```bash
 npx ecc-agentshield init
 ```
 
-Creates:
-- `settings.json` with scoped permissions and deny list
-- `CLAUDE.md` with security best practices
-- `mcp.json` placeholder
+创建：
+- 带限定范围权限和拒绝列表的 `settings.json`
+- 带安全最佳实践的 `CODEBUDDY.md`
+- `mcp.json` 占位符
 
 ### GitHub Action
 
-Add to your CI pipeline:
+添加到您的 CI 流水线：
 
 ```yaml
 - uses: affaan-m/agentshield@v1
@@ -126,39 +126,39 @@ Add to your CI pipeline:
     fail-on-findings: true
 ```
 
-## Severity Levels
+## 严重级别
 
-| Grade | Score | Meaning |
+| 评级 | 分数 | 含义 |
 |-------|-------|---------|
-| A | 90-100 | Secure configuration |
-| B | 75-89 | Minor issues |
-| C | 60-74 | Needs attention |
-| D | 40-59 | Significant risks |
-| F | 0-39 | Critical vulnerabilities |
+| A | 90-100 | 安全配置 |
+| B | 75-89 | 轻微问题 |
+| C | 60-74 | 需要关注 |
+| D | 40-59 | 显著风险 |
+| F | 0-39 | 严重漏洞 |
 
-## Interpreting Results
+## 解读结果
 
-### Critical Findings (fix immediately)
-- Hardcoded API keys or tokens in config files
-- `Bash(*)` in the allow list (unrestricted shell access)
-- Command injection in hooks via `${file}` interpolation
-- Shell-running MCP servers
+### 严重发现（立即修复）
+- 配置文件中的硬编码 API 密钥或令牌
+- 允列表中的 `Bash(*)`（不受限制的 shell 访问）
+- 通过 `${file}` 插值在 hooks 中的命令注入
+- 运行 shell 的 MCP 服务器
 
-### High Findings (fix before production)
-- Auto-run instructions in CLAUDE.md (prompt injection vector)
-- Missing deny lists in permissions
-- Agents with unnecessary Bash access
+### 高危发现（生产前修复）
+- CODEBUDDY.md 中的自动运行指令（提示注入向量）
+- 权限中缺少拒绝列表
+- 具有不必要 Bash 访问权限的代理
 
-### Medium Findings (recommended)
-- Silent error suppression in hooks (`2>/dev/null`, `|| true`)
-- Missing PreToolUse security hooks
-- `npx -y` auto-install in MCP server configs
+### 中危发现（推荐）
+- hooks 中的静默错误抑制（`2>/dev/null`、`|| true`）
+- 缺少 PreToolUse 安全 hooks
+- MCP 服务器配置中的 `npx -y` 自动安装
 
-### Info Findings (awareness)
-- Missing descriptions on MCP servers
-- Prohibitive instructions correctly flagged as good practice
+### 低危发现（了解即可）
+- MCP 服务器缺少描述
+- 正确标记为良好实践的禁止指令
 
-## Links
+## 链接
 
 - **GitHub**: [github.com/affaan-m/agentshield](https://github.com/affaan-m/agentshield)
 - **npm**: [npmjs.com/package/ecc-agentshield](https://www.npmjs.com/package/ecc-agentshield)
