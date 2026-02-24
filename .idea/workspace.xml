@@ -4,10 +4,19 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="73d6f8f2-f1e0-49df-a8a4-ca3703b1c06f" name="Changes" comment="docs: 更新项目配置和进度文档并添加代码注释策略">
-      <change beforePath="$PROJECT_DIR$/.idea/Melon.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Melon.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="73d6f8f2-f1e0-49df-a8a4-ca3703b1c06f" name="Changes" comment="chore: 更新IDE配置以使用Poetry环境并排除虚拟目录">
+      <change beforePath="$PROJECT_DIR$/.codebuddy/CODEBUDDY.md" beforeDir="false" afterPath="$PROJECT_DIR$/.codebuddy/CODEBUDDY.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.codebuddy/memories/progress.md" beforeDir="false" afterPath="$PROJECT_DIR$/.codebuddy/memories/progress.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.codebuddy/plans/phase3-user-management.md" beforeDir="false" afterPath="$PROJECT_DIR$/.codebuddy/plans/phase3-user-management.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/accounts/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/accounts/admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/accounts/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/accounts/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/accounts/tests.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/accounts/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/accounts/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/settings/base.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/settings/base.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/poetry.lock" beforeDir="false" afterPath="$PROJECT_DIR$/poetry.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -21,6 +30,11 @@
     </persistenceIdMap>
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="master" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
@@ -57,7 +71,7 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "ai.playground.ignore.import.keys.banner.in.settings": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "master",
+    "git-widget-placeholder": "user__dependencies__settings",
     "junie.onboarding.icon.badge.shown": "true",
     "last_opened_file_path": "/Users/maxrocketman/myproject/melon",
     "node.js.detected.package.eslint": "true",
@@ -114,7 +128,7 @@
       <workItem from="1770941437951" duration="1260000" />
       <workItem from="1770947803258" duration="19693000" />
       <workItem from="1771031969500" duration="362000" />
-      <workItem from="1771032345084" duration="19350000" />
+      <workItem from="1771032345084" duration="25788000" />
     </task>
     <task id="LOCAL-00001" summary="chore(project): 初始化项目配置文件&#10;&#10;- 添加 .gitignore 文件用于忽略构建产物和环境文件&#10;- 添加 .idea 项目配置文件包括模块、编译器设置和版本控制配置&#10;- 创建 pyproject.toml 配置文件定义项目依赖和构建系统&#10;- 配置 Poetry 包管理器及开发和生产依赖项&#10;- 设置 Django 项目基础配置及 LangChain 相关组件依赖&#10;- 添加数据库连接、异步处理和测试相关依赖包">
       <option name="closed" value="true" />
@@ -228,7 +242,15 @@
       <option name="project" value="LOCAL" />
       <updated>1771896326618</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="chore: 更新IDE配置以使用Poetry环境并排除虚拟目录">
+      <option name="closed" value="true" />
+      <created>1771898113946</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1771898113946</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -257,7 +279,8 @@
     <MESSAGE value="docs: 将文档翻译为中文" />
     <MESSAGE value="docs: 更新阶段2进度并添加基础设施安装说明" />
     <MESSAGE value="docs: 更新项目配置和进度文档并添加代码注释策略" />
-    <option name="LAST_COMMIT_MESSAGE" value="docs: 更新项目配置和进度文档并添加代码注释策略" />
+    <MESSAGE value="chore: 更新IDE配置以使用Poetry环境并排除虚拟目录" />
+    <option name="LAST_COMMIT_MESSAGE" value="chore: 更新IDE配置以使用Poetry环境并排除虚拟目录" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/melon$runserver.coverage" NAME="runserver Coverage Results" MODIFIED="1771896633424" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />

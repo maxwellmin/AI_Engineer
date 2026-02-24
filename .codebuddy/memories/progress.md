@@ -29,7 +29,7 @@
 **状态**: ✅ 已完成
 **开始日期**: 2025-02-14
 **完成日期**: 2026-02-24
-**说明**: Django 项目初始化完成，所有基础设施就绪
+**说明**: Django 项目初始化完成，所有基础设施就绪，正在进行手动验证
 
 **验收标准**:
 - [x] 基础设施就绪 (Redis, Neo4j, PostgreSQL, Milvus)
@@ -56,17 +56,39 @@
 ---
 
 ### 阶段 3: 用户管理模块
-**状态**: ⏳ 未开始
+**状态**: ✅ 已完成
+**开始日期**: 2026-02-24
+**完成日期**: 2026-02-24
 **目标**: 用户注册、登录、权限管理，基于 Django 用户模块扩展
 
-**验收标准**:
-- [ ] 用户模型扩展完成 (apps/accounts/)
-- [ ] 注册 API 可用 (POST /api/accounts/register/)
-- [ ] 登录 API 可用 (POST /api/accounts/login/) - JWT
-- [ ] 权限系统配置完成
-- [ ] 用户相关测试通过
+**详细计划**: 见 `.codebuddy/plans/phase3-user-management.md`
 
-**依赖**: 阶段 2 完成
+**验收标准**:
+- [x] 用户模型扩展完成 (apps/accounts/)
+- [x] 注册 API 可用 (POST /api/v1/accounts/auth/register/)
+- [x] 登录 API 可用 (POST /api/v1/accounts/auth/login/) - JWT + Knox
+- [x] 权限系统配置完成
+- [x] 用户相关测试通过 (目标: 80%+ coverage)
+
+**实现任务**:
+1. [x] 添加依赖 (djangorestframework-simplejwt, django-rest-knox)
+2. [x] 创建自定义 User 模型
+3. [x] 创建序列化器 (注册、登录、用户详情、密码修改)
+4. [x] 创建认证视图 (Register, Login, Logout, TokenRefresh, Profile, PasswordChange)
+5. [x] 配置 URL 路由
+6. [x] 创建权限类
+7. [x] 配置 Admin
+8. [x] 编写测试套件 (TDD)
+
+**完成的工作**:
+- User 模型创建 (phone, avatar, bio, is_verified 字段)
+- 5 个序列化器 (UserRegistration, UserLogin, User, UserUpdate, PasswordChange)
+- 6 个 API 端点 (register, login, logout, refresh, profile, password/change)
+- IsOwnerOrReadOnly 权限类
+- UserAdmin 配置
+- 完整测试套件 (conftest, factories, test_models, test_serializers, test_views, test_permissions)
+
+**依赖**: 阶段 2 完成 ✅
 
 ---
 
@@ -200,6 +222,8 @@
 
 | 日期 | 阶段 | 更新内容 |
 |------|------|---------|
+| 2026-02-24 | 阶段 3 | 完成用户管理模块：User模型、5个序列化器、6个API端点、权限类、Admin配置、完整测试套件 |
+| 2026-02-24 | 阶段 3 | 开始用户管理模块开发，创建详细实施计划 `phase3-user-management.md` |
 | 2026-02-24 | 阶段 2 | 完成 Django 项目初始化：项目结构、7个Apps、Settings分层、核心文件、pytest配置、数据库迁移、服务器启动验证 |
 | 2025-02-14 | 项目设置 | 完成 Codebuddy 配置：CODEBUDDY.md、agent (rag_expert)、skill (create_api_endpoint)、rule (database_operations)、memories (progress, decisions) |
 | 2025-02-14 | 阶段 1 | 完成文档阅读和计划确认 |

@@ -8,6 +8,7 @@ Environment-specific settings should be defined in local.py or production.py.
 from __future__ import annotations
 
 import os
+from datetime import timedelta
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -46,6 +47,8 @@ INSTALLED_APPS = [
     # Third-party apps
     "rest_framework",
     "rest_framework.authtoken",
+    "knox",
+    "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     "django_filters",
     "drf_yasg",
@@ -213,6 +216,12 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # =============================================================================
+# Custom User Model
+# =============================================================================
+
+AUTH_USER_MODEL = "accounts.User"
+
+# =============================================================================
 # Internationalization
 # =============================================================================
 
@@ -240,8 +249,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "knox.auth.TokenAuthentication",
         "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
@@ -255,6 +266,18 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_yasg.generators.OpenAPISchemaGenerator",
     "EXCEPTION_HANDLER": "core.exceptions.custom_exception_handler",
+}
+
+# =============================================================================
+# Simple JWT Configuration
+# =============================================================================
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
 # =============================================================================

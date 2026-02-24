@@ -27,8 +27,8 @@ urlpatterns = [
     # API documentation
     path("swagger/", schema_view.with_ui("swagger", cache_timeout=0), name="schema-swagger-ui"),
     path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
-    # API endpoints (to be added)
-    # path("api/v1/accounts/", include("apps.accounts.urls")),
+    # API endpoints
+    path("api/v1/accounts/", include("apps.accounts.urls")),
 ]
 
 # Debug toolbar URLs (only in debug mode)
