@@ -32,7 +32,17 @@ document parser模块是整个系统的核心模块，其他模块都需要依�
 这里还要根据元数据实现去重模块（文档级别）
 ```
 
-- 5 milvus_database_controller
+- 5 object_storage_controller
+```
+object_storage_controller模块负责文档文件的存储功能。
+开发环境使用 MinIO（已在 docker-compose.yml 中配置），生产环境可切换到 AWS S3。
+使用 django-storages + boto3 进行集成。
+实现文件上传、下载、删除、预签名 URL 等功能。
+为 document parser 模块提供文件存储支持。
+封装好对应的连接器和方法。
+```
+
+- 6 milvus_database_controller
 ```
 milvus_database_controller模块负责向量数据库的增删改查功能。
 我们会使用milvus官方提供的python sdk来进行向量数据库的操作。
@@ -41,7 +51,7 @@ milvus_database_controller模块是整个系统的核心模块，其他模块都
 封装好对应的连接器和方法。
 ```
 
-- 6 neo4j_database_controller
+- 7 neo4j_database_controller
 ```
 neo4j_database_controller模块负责关系数据库的增删改查功能。
 这里我们需要实现创建数据库，插入数据，搜索数据，删除数据等功能。
@@ -50,7 +60,7 @@ neo4j_database_controller模块是整个系统的核心模块，其他模块都�
 封装好对应的连接器和方法
 ```
 
-- 7 embedding_module
+- 8 embedding_module
 ```
 embedding_module模块负责文本的向量化功能。
 我们会使用一些第三方的库来进行文本的向量化，比如sentence-transformers等。
@@ -60,12 +70,13 @@ embedding_module模块是整个系统的核心模块，其他模块都需要依�
 Service的方式提供给其他模块使用。
 ```
 
-- 8 document pipeline manager
+- 9 document pipeline manager
 ```
-当前面7个步骤完成之后，我们就可以开始编写document pipeline manager模块了。
+当前面8个步骤完成之后，我们就可以开始编写document pipeline manager模块了。
 document pipeline manager模块负责文档的解析，向量化，存储等功能。
 pipeline要实现管理
-User Upload → Django API → Document Parser → Text Chunking
+User Upload → Django API → Object Storage Controller (MinIO/S3)
+    → Document Parser → Text Chunking
     → Embedding Generation → Milvus Storage
     → Entity Extraction → Neo4j Graph Update
     → PostgreSQL Metadata Storage
@@ -73,7 +84,7 @@ User Upload → Django API → Document Parser → Text Chunking
 最终我们会提供一个上传结构到api测，测试的时候会调用这个api，然后用工具来进行测试，上传些文档上来。
 ```
 
-- 9 document rag search  module
+- 10 document rag search  module
 ```
 这个模块我们将实现文档的RAG搜索功能。
 RAG搜索功能包括查询，向量搜索，上下文组装，LLM生成等步骤的实现。
@@ -89,7 +100,7 @@ Search Query (HTTP) → Query Embedding
 这个步骤比较健壮后，我们会再去进行chat agent的开发。
 ```
 
-- 10 chat agent module
+- 11 chat agent module
 ```
 这个模块我们将实现基于RAG的chat agent功能。
 chat agent功能包括基于图RAG的agent，基于文本RAG的agent等。
@@ -104,9 +115,9 @@ User Message (WebSocket) → Django Channels Consumer
 这里的重点是agent的开发，django websocket的开发，以及整个数据流的实现。
 ```
 
-- 11 集成测试
+- 12 集成测试
 ```
 最后我们来回顾一下整个系统的开发过程，进行一些集成测试，确保整个系统的功能是完整的，并且没有什么大的问题。
-我们会编写一些测试用例，来测试整个系统的功能，包括用户管理，文档解析，向量数据库操作，关系数据库操作，文本向量化，document pipeline manager，document rag search，chat agent等功能的测试。
+我们会编写一些测试用例，来测试整个系统的功能，包括用户管理，文档解析，对象存储，向量数据库操作，关系数据库操作，文本向量化，document pipeline manager，document rag search，chat agent等功能的测试。
 然后我们对一些问题进行优化和修改。
 ```

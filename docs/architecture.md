@@ -21,13 +21,13 @@
 │  │   Query → Embedding → Vector Search → Context        │   │
 │  │   Assembly → LLM Generation → Response               │   │
 │  └──────────────────────────────────────────────────────┘   │
-└────┬──────────────┬──────────────┬──────────────┬───────────┘
-     │              │              │              │
-     ▼              ▼              ▼              ▼
-┌─────────┐  ┌──────────┐  ┌──────────┐  ┌──────────────┐
-│PostgreSQL│ │  Milvus  │  │  Neo4j   │  │ QWEN API     │
-│ (主数据) │  │ (向量库)  │  │ (知识图)  │  │ (LLM+Embed)  │
-└─────────┘  └──────────┘  └──────────┘  └──────────────┘
+└────┬──────────────┬──────────────┬──────────────┬───────────┬───────────┘
+     │              │              │              │           │
+     ▼              ▼              ▼              ▼           ▼
+┌─────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────────┐
+│PostgreSQL│ │  Milvus  │  │  Neo4j   │  │  MinIO   │  │ QWEN API     │
+│ (主数据) │  │ (向量库)  │  │ (知识图)  │  │ (文件存储)│  │ (LLM+Embed)  │
+└─────────┘  └──────────┘  └──────────┘  └──────────┘  └──────────────┘
 ```
 
 ## 项目核心组件和模块
@@ -40,6 +40,13 @@
 - **document parser**: 用于解析文档，拆分文档为句子，段落，形成符合逻辑的chunking, 方便后续通过LLM Embeding进行向量化存储和搜索。
 - **document meta management(文档级别)**: 用于维护文档元数据，如文档ID，文档名称，文档路径，文档创建时间，文档更新时间，文档大小，文档类型，文档状态等。
 - **document deduplication**: 用于去重文档，避免重复存储和处理相同的文档。结合meta以及chunking的元数据，可以快速找到chunking的部分是否已经被向量化和存储，从而避免重复处理。
+
+### object storage controller
+- **upload file**: 用于上传文件到 S3 兼容存储（MinIO/AWS S3）
+- **download file**: 用于从存储下载文件
+- **delete file**: 用于删除存储中的文件
+- **generate presigned url**: 用于生成临时访问链接
+- **bucket management**: 用于管理存储桶
 
 ### document pipeline manager
 - **document pipeline manager**: 用于管理文档处理流水线，包括文档解析、向量化存储、向量搜索、知识图谱构建、LLM生成等步骤。结合postgreSQL跟踪记录文档处理进度，以及向量库和知识图谱的更新，可以快速找到文档处理进度，以及向量库和知识图谱的更新。
@@ -81,7 +88,8 @@
 
 ### 文档上传流程
 ```
-User Upload → Django API → Document Parser → Text Chunking
+User Upload → Django API → Object Storage Controller (MinIO/S3)
+    → Document Parser → Text Chunking
     → Embedding Generation → Milvus Storage
     → Entity Extraction → Neo4j Graph Update
     → PostgreSQL Metadata Storage

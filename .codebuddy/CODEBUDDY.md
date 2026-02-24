@@ -50,6 +50,12 @@
   - 任务队列: Celery + Redis
   - 缓存使用Redis存储，缓存如果需要，如缓存用户信息、会话信息、文档处理结果等
 
+- **对象存储**: MinIO (开发环境) / AWS S3 (生产环境)
+  - 用途：文档文件存储（PDF、DOCX、XLSX 等）
+  - 开发环境配置：`dev_utils/docker-compose.yml` 中的 minio 服务
+  - 端口：9000 (API), 9001 (Console)
+  - 集成方式：django-storages + boto3
+
 ### AI/ML组件
 - **LLM Provider**: 阿里云通义千问 API (Qwen-2-72B / Qwen-2-7B / Qwen-2-1.8B)
 - **Embedding Model**: text-embedding-v1（阿里云通义千问嵌入模型, 1536维默认）
@@ -100,6 +106,7 @@
 - **Django Channels**: 处理 WebSocket 连接，实现实时通信功能
 - **Django REST Framework**: 提供 RESTful API 接口
 - **document parser**: 解析文档，拆分为句子、段落，形成符合逻辑的 chunking
+- **object storage controller**: S3 兼容存储的文件上传、下载、删除、预签名 URL
 - **milvus database controller**: 向量库的创建、插入、搜索、删除
 - **neo4j database controller**: 知识图谱节点的创建、查询、更新、删除
 - **embedding engine**: 文本向量化（sentence transformer + qwen api）
@@ -130,6 +137,7 @@ apps/
   accounts/              # 用户认证、注册、个人资料
   documents_parser/      # 文档解析和处理
   document_pipeline_manager/  # 文档处理流水线管理
+  object_storage_controller/  # S3/MinIO 对象存储控制器
   milvus_database_controller/ # Milvus 数据库控制器
   neo4j_database_controller/  # Neo4j 数据库控制器
   embedding_engine/      # 文本向量化
@@ -193,7 +201,8 @@ pyproject.toml           # Poetry 配置文件
 
 ### 文档上传流程
 ```
-User Upload → Django API → Document Parser → Text Chunking
+User Upload → Django API → Object Storage Controller (MinIO/S3)
+    → Document Parser → Text Chunking
     → Embedding Generation → Milvus Storage
     → Entity Extraction → Neo4j Graph Update
     → PostgreSQL Metadata Storage
@@ -262,13 +271,14 @@ Search Query (HTTP) → Query Embedding
 | 2 | 基础搭建 | 创建 Django 工程和 app，数据库初始化，基础设施和环境变量配置 |
 | 3 | 用户管理模块 | 用户注册、登录、权限管理，基于 Django 用户模块扩展 |
 | 4 | document parser 模块 | 文档上传、解析、存储，元数据管理，文档去重 |
-| 5 | milvus_database_controller | 向量数据库的增删改查，封装连接器和方法 |
-| 6 | neo4j_database_controller | 图数据库的增删改查，封装连接器和方法 |
-| 7 | embedding_module | 文本向量化功能，Service 方式提供给其他模块 |
-| 8 | document pipeline manager | 文档处理流水线管理，状态跟踪和记录 |
-| 9 | document rag search module | RAG 搜索功能，混合检索（向量+关键词+图） |
-| 10 | chat agent module | 基于 RAG 的 chat agent，WebSocket 实时通信 |
-| 11 | 集成测试 | 端到端测试，功能验证，问题优化 |
+| 5 | object_storage_controller | S3/MinIO 文件存储，上传/下载/预签名 URL |
+| 6 | milvus_database_controller | 向量数据库的增删改查，封装连接器和方法 |
+| 7 | neo4j_database_controller | 图数据库的增删改查，封装连接器和方法 |
+| 8 | embedding_module | 文本向量化功能，Service 方式提供给其他模块 |
+| 9 | document pipeline manager | 文档处理流水线管理，状态跟踪和记录 |
+| 10 | document rag search module | RAG 搜索功能，混合检索（向量+关键词+图） |
+| 11 | chat agent module | 基于 RAG 的 chat agent，WebSocket 实时通信 |
+| 12 | 集成测试 | 端到端测试，功能验证，问题优化 |
 
 
 ## 环境变量
@@ -280,6 +290,7 @@ Search Query (HTTP) → Query Embedding
 - Redis 配置（Celery 用）
 - Celery 配置
 - Milvus 配置
+- S3/MinIO 配置（S3_ENDPOINT_URL、S3_ACCESS_KEY_ID、S3_SECRET_ACCESS_KEY、S3_BUCKET_NAME）
 - Qwen API 设置
 - AI/ML 模型配置
 
