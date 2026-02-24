@@ -4,9 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="73d6f8f2-f1e0-49df-a8a4-ca3703b1c06f" name="Changes" comment="docs: 将文档翻译为中文">
+    <list default="true" id="73d6f8f2-f1e0-49df-a8a4-ca3703b1c06f" name="Changes" comment="docs: 更新阶段2进度并添加基础设施安装说明">
+      <change beforePath="$PROJECT_DIR$/.codebuddy/CODEBUDDY.md" beforeDir="false" afterPath="$PROJECT_DIR$/.codebuddy/CODEBUDDY.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.codebuddy/memories/progress.md" beforeDir="false" afterPath="$PROJECT_DIR$/.codebuddy/memories/progress.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tmp/skills/continuous-learning-v2/scripts/instinct-cli.py" beforeDir="false" afterPath="$PROJECT_DIR$/tmp/skills/continuous-learning-v2/scripts/instinct-cli.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -112,7 +115,7 @@
       <workItem from="1770941437951" duration="1260000" />
       <workItem from="1770947803258" duration="19693000" />
       <workItem from="1771031969500" duration="362000" />
-      <workItem from="1771032345084" duration="14407000" />
+      <workItem from="1771032345084" duration="17980000" />
     </task>
     <task id="LOCAL-00001" summary="chore(project): 初始化项目配置文件&#10;&#10;- 添加 .gitignore 文件用于忽略构建产物和环境文件&#10;- 添加 .idea 项目配置文件包括模块、编译器设置和版本控制配置&#10;- 创建 pyproject.toml 配置文件定义项目依赖和构建系统&#10;- 配置 Poetry 包管理器及开发和生产依赖项&#10;- 设置 Django 项目基础配置及 LangChain 相关组件依赖&#10;- 添加数据库连接、异步处理和测试相关依赖包">
       <option name="closed" value="true" />
@@ -210,7 +213,15 @@
       <option name="project" value="LOCAL" />
       <updated>1771052712522</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="docs: 更新阶段2进度并添加基础设施安装说明">
+      <option name="closed" value="true" />
+      <created>1771054099094</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1771054099094</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -237,7 +248,8 @@
     <MESSAGE value="docs: 添加架构师代理文档并更新项目配置" />
     <MESSAGE value="docs: 将文档从英文翻译为中文" />
     <MESSAGE value="docs: 将文档翻译为中文" />
-    <option name="LAST_COMMIT_MESSAGE" value="docs: 将文档翻译为中文" />
+    <MESSAGE value="docs: 更新阶段2进度并添加基础设施安装说明" />
+    <option name="LAST_COMMIT_MESSAGE" value="docs: 更新阶段2进度并添加基础设施安装说明" />
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>
