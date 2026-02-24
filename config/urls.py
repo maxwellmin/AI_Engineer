@@ -29,6 +29,7 @@ urlpatterns = [
     path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
     # API endpoints
     path("api/v1/accounts/", include("apps.accounts.urls")),
+    path("api/v1/documents/", include("apps.documents_parser.urls")),
 ]
 
 # Debug toolbar URLs (only in debug mode)

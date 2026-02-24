@@ -4,10 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="73d6f8f2-f1e0-49df-a8a4-ca3703b1c06f" name="Changes" comment="feat: 添加文档解析模块及媒体文件配置&#10;&#10;新增Document和DocumentChunk模型用于文档管理&#10;配置基础设置和本地开发环境的媒体文件路径&#10;更新URL配置以支持开发环境下的媒体文件服务">
+    <list default="true" id="73d6f8f2-f1e0-49df-a8a4-ca3703b1c06f" name="Changes" comment="feat: 添加文档解析和分块服务模块&#10;&#10;在文档解析服务包中新增解析器和分块器相关类导入&#10;更新模块文档说明以包含解析和分块功能&#10;添加相关类到__all__导出列表">
       <change beforePath="$PROJECT_DIR$/.codebuddy/plans/phase4-document-parser.md" beforeDir="false" afterPath="$PROJECT_DIR$/.codebuddy/plans/phase4-document-parser.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/documents_parser/services/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/documents_parser/services/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/documents_parser/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/documents_parser/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/urls.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -249,7 +249,15 @@
       <option name="project" value="LOCAL" />
       <updated>1771912640771</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="feat: 添加文档解析和分块服务模块&#10;&#10;在文档解析服务包中新增解析器和分块器相关类导入&#10;更新模块文档说明以包含解析和分块功能&#10;添加相关类到__all__导出列表">
+      <option name="closed" value="true" />
+      <created>1771916852327</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1771916852327</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -280,7 +288,8 @@
     <MESSAGE value="docs: 更新项目配置和进度文档并添加代码注释策略" />
     <MESSAGE value="chore: 更新IDE配置以使用Poetry环境并排除虚拟目录" />
     <MESSAGE value="feat: 添加文档解析模块及媒体文件配置&#10;&#10;新增Document和DocumentChunk模型用于文档管理&#10;配置基础设置和本地开发环境的媒体文件路径&#10;更新URL配置以支持开发环境下的媒体文件服务" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: 添加文档解析模块及媒体文件配置&#10;&#10;新增Document和DocumentChunk模型用于文档管理&#10;配置基础设置和本地开发环境的媒体文件路径&#10;更新URL配置以支持开发环境下的媒体文件服务" />
+    <MESSAGE value="feat: 添加文档解析和分块服务模块&#10;&#10;在文档解析服务包中新增解析器和分块器相关类导入&#10;更新模块文档说明以包含解析和分块功能&#10;添加相关类到__all__导出列表" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: 添加文档解析和分块服务模块&#10;&#10;在文档解析服务包中新增解析器和分块器相关类导入&#10;更新模块文档说明以包含解析和分块功能&#10;添加相关类到__all__导出列表" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/melon$runserver.coverage" NAME="runserver Coverage Results" MODIFIED="1771896633424" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
