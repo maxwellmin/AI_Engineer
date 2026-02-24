@@ -4,7 +4,7 @@
 
 Implement document parser module for melon RAG project, including document upload, parsing, storage, metadata management, and deduplication.
 
-## Status: ✅ Submodule 4 completed (Submodule 1-4 completed)
+## Status: ✅ Phase 4 Completed (All 5 submodules completed)
 
 ## Dependencies
 
@@ -60,12 +60,12 @@ Implement document parser module for melon RAG project, including document uploa
 | 4.3 | Create document detail API | GET /api/v1/documents/{id}/ | ✅ Done |
 | 4.4 | Create document delete API | DELETE /api/v1/documents/{id}/delete/ | ✅ Done |
 
-### Submodule 5: Testing & Acceptance
+### Submodule 5: Testing & Acceptance ✅
 
 | # | Task | Description | Status |
 |---|------|-------------|--------|
 | 5.1 | Create test factories | Use factory_boy to create test data | ✅ Done |
-| 5.2 | Write model tests | Test Document and DocumentChunk models | ❌ Pending |
+| 5.2 | Write model tests | Test Document and DocumentChunk models | ✅ Done |
 | 5.3 | Write service tests | Test parsing, storage, deduplication services | ✅ Done |
 | 5.4 | Write API tests | Test all API endpoints | ✅ Done |
 
@@ -257,16 +257,17 @@ apps/documents_parser/
 ├── chunking/              # ✅ Done
 │   ├── __init__.py
 │   └── text_splitter.py   # Text chunking service
-└── tests/
-    ├── __init__.py
-    ├── conftest.py        # Pytest fixtures ✅
-    ├── factories.py       # Factory Boy factories ✅
-    ├── test_hash.py       # Hash service tests ✅
-    ├── test_storage.py    # Storage service tests ✅
-    ├── test_deduplication.py  # Deduplication tests ✅
-    ├── test_parsers.py    # Parser tests ✅
-    ├── test_chunking.py   # Chunking tests ✅
-    └── test_views.py      # API tests ✅
+├── tests/
+│   ├── __init__.py
+│   ├── conftest.py        # Pytest fixtures ✅
+│   ├── factories.py       # Factory Boy factories ✅
+│   ├── test_models.py     # Model tests ✅
+│   ├── test_hash.py       # Hash service tests ✅
+│   ├── test_storage.py    # Storage service tests ✅
+│   ├── test_deduplication.py  # Deduplication tests ✅
+│   ├── test_parsers.py    # Parser tests ✅
+│   ├── test_chunking.py   # Chunking tests ✅
+│   └── test_views.py      # API tests ✅
 ```
 
 ---
@@ -291,7 +292,7 @@ langchain-text-splitters = "^1.1.0"  # Text chunking ✅
 - [x] Metadata correctly stored to PostgreSQL
 - [x] Document deduplication works (same hash not re-uploaded)
 - [x] Chunking results are logically coherent
-- [x] Test coverage >= 80% (Current: 87.73%)
+- [x] Test coverage >= 80% (Current: 88%, 126 tests)
 - [x] API documentation accessible
 
 ---
