@@ -59,3 +59,10 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 STATICFILES_DIRS = [
     BASE_DIR / "static",  # noqa: F405
 ]
+
+# =============================================================================
+# Media Files (Development)
+# =============================================================================
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"  # noqa: F405

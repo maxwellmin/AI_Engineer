@@ -238,6 +238,20 @@ STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # =============================================================================
+# Media Files Configuration
+# =============================================================================
+
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+# Document storage configuration
+DOCUMENT_STORAGE_CONFIG = {
+    "upload_to": "documents",
+    "max_file_size": 100 * 1024 * 1024,  # 100MB
+    "allowed_extensions": ["pdf", "docx", "doc", "txt", "md"],
+}
+
+# =============================================================================
 # Default Primary Key Field Type
 # =============================================================================
 
