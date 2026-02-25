@@ -2,6 +2,20 @@
 
 本文档提供 accounts、documents_parser、object_storage_controller 模块 API 的完整手动测试步骤。
 
+## 测试凭据
+
+> 以下凭据用于测试过程中的认证，每次测试会话后更新
+
+| 字段 | 值 |
+|------|-----|
+| Username | testuser |
+| Password | testpass123 |
+| Access Token | (登录后获取) |
+| Refresh Token | (登录后获取) |
+| User ID | 1 |
+
+---
+
 ## 目录
 
 1. [前置条件](#前置条件)
@@ -151,6 +165,8 @@ PRESIGNED_URL_EXPIRY=3600
    }
    ```
 
+**Status**: ✅ PASS - 201 Created, 用户注册成功
+
 ### 测试 2: 用户登录
 
 1. 找到 **POST /api/v1/accounts/auth/login/**
@@ -174,11 +190,15 @@ PRESIGNED_URL_EXPIRY=3600
    ```
 6. **复制 `access` token** 用于后续测试
 
+**Status**: ✅ PASS - 200 OK, 返回 access/refresh/knox_token
+
 ### 测试 3: 配置认证
 
 1. 点击页面右上角 **Authorize** 按钮
 2. 输入：`Bearer <your_access_token>` (替换为实际的 token)
 3. 点击 "Authorize" 然后点击 "Close"
+
+**Status**: ⏭️ SKIP - 配置步骤
 
 ### 测试 4: 获取用户资料
 
@@ -199,6 +219,8 @@ PRESIGNED_URL_EXPIRY=3600
    }
    ```
 
+**Status**: ✅ PASS - 200 OK, 返回用户资料
+
 ### 测试 5: 更新用户资料
 
 1. 找到 **PATCH /api/v1/accounts/profile/**
@@ -212,6 +234,8 @@ PRESIGNED_URL_EXPIRY=3600
    ```
 4. 点击 "Execute"
 5. **预期结果**: 200 OK，返回更新后的资料
+
+**Status**: ✅ PASS - 200 OK, bio 和 phone 已更新
 
 ### 测试 6: 用户登出
 
@@ -230,6 +254,8 @@ PRESIGNED_URL_EXPIRY=3600
      "message": "Successfully logged out"
    }
    ```
+
+**Status**: ✅ PASS - 200 OK, 用户已登出
 
 ---
 
@@ -261,6 +287,31 @@ PRESIGNED_URL_EXPIRY=3600
    }
    ```
 
+**Status**: ✅ PASS
+
+**Test Results (Executed: 2026-02-25 15:42:04 CST)**
+
+- **Actual Status Code**: 201 Created
+- **Actual Response**:
+  ```json
+  {
+    "id": "eeab74e7-4c2f-47e5-8d58-33035f14fb44",
+    "name": "CASI_RefGuide_d4577d80.pdf",
+    "original_name": "CASI_RefGuide.pdf",
+    "file_type": "pdf",
+    "file_size": 13977822,
+    "status": "uploaded",
+    "title": "CASI Reference Guide",
+    "description": "Test PDF document upload",
+    "created_at": "2026-02-25T07:42:04.744815Z"
+  }
+  ```
+- **Notes**:
+  - 测试前需要确保 MinIO bucket `melon-documents` 存在
+  - 文件成功上传到 MinIO 存储
+  - 响应格式符合预期，包含所有必要字段
+  - 文件大小约 14MB，上传处理正常
+
 #### 测试 8: 上传重复文档 (去重测试)
 
 1. 使用之前上传过的同一文件再次上传
@@ -278,6 +329,8 @@ PRESIGNED_URL_EXPIRY=3600
    }
    ```
 
+**Status**: ⏳ TODO
+
 #### 测试 9: 上传不支持的文件类型
 
 1. 尝试上传一个 `.xlsx` 或 `.jpg` 文件
@@ -289,6 +342,8 @@ PRESIGNED_URL_EXPIRY=3600
      ]
    }
    ```
+
+**Status**: ⏳ TODO
 
 #### 测试 10: 获取文档列表
 
@@ -323,12 +378,16 @@ PRESIGNED_URL_EXPIRY=3600
    }
    ```
 
+**Status**: ⏳ TODO
+
 #### 测试 11: 按状态筛选文档列表
 
 1. 找到 **GET /api/v1/documents/**
 2. 在 **status** 参数中输入：`uploaded`
 3. 点击 "Execute"
 4. **预期结果**: 200 OK，仅返回状态为 "uploaded" 的文档
+
+**Status**: ⏳ TODO
 
 **可用的状态值**:
 - `uploaded` - 已上传
@@ -364,6 +423,8 @@ PRESIGNED_URL_EXPIRY=3600
    }
    ```
 
+**Status**: ⏳ TODO
+
 ### 方式二: Presigned URL 上传 (S3 直传)
 
 > 此方式适用于大文件上传，前端直接上传到 S3，减轻服务器负担。
@@ -390,6 +451,8 @@ PRESIGNED_URL_EXPIRY=3600
    }
    ```
 
+**Status**: ⏳ TODO
+
 #### 测试 14: 使用 Presigned URL 上传文件
 
 使用返回的 `upload_url` 直接上传文件到 S3：
@@ -402,6 +465,8 @@ curl -X PUT "<upload_url>" \
 ```
 
 **Local Mode**: 此方式不可用，返回的 URL 将是无效路径。
+
+**Status**: ⏳ TODO
 
 #### 测试 15: 确认上传并创建文档记录
 
@@ -431,6 +496,8 @@ curl -X PUT "<upload_url>" \
      "message": "Document uploaded successfully"
    }
    ```
+
+**Status**: ⏳ TODO
 
 ---
 
@@ -465,6 +532,8 @@ curl -X PUT "<upload_url>" \
    }
    ```
 
+**Status**: ⏳ TODO
+
 #### 测试 17: 使用 Presigned URL 下载
 
 **S3 Mode**: 前端直接使用返回的 URL 下载文件
@@ -474,12 +543,16 @@ curl -X GET "<presigned_url>" -o downloaded-file.pdf
 
 **Local Mode**: 使用认证下载 API
 
+**Status**: ⏳ TODO
+
 #### 测试 18: 认证下载 (Local Mode)
 
 1. 找到 **GET /api/v1/documents/{id}/download/**
 2. 输入文档 UUID
 3. 点击 "Execute"
 4. **预期结果**: 200 OK，返回文件内容
+
+**Status**: ⏳ TODO
 
 #### 测试 19: 获取 Presigned Download URL (Storage API)
 
@@ -497,6 +570,8 @@ curl -X GET "<presigned_url>" -o downloaded-file.pdf
    }
    ```
 
+**Status**: ⏳ TODO
+
 ### 文档删除测试
 
 #### 测试 20: 删除文档
@@ -506,10 +581,14 @@ curl -X GET "<presigned_url>" -o downloaded-file.pdf
 3. 点击 "Execute"
 4. **预期结果**: 204 No Content (无响应体)
 
+**Status**: ⏳ TODO
+
 #### 测试 21: 删除后再获取该文档
 
 1. 尝试获取已删除的文档
 2. **预期结果**: 404 Not Found
+
+**Status**: ⏳ TODO
 
 ---
 
@@ -522,7 +601,7 @@ curl -X GET "<presigned_url>" -o downloaded-file.pdf
 | 3 | Delete non-existent document | 404 Not Found | [ ] |
 | 4 | Access other user's document | 404 Not Found | [ ] |
 | 5 | Invalid file type (xlsx, jpg) | 400 Bad Request | [ ] |
-| 6 | No authentication token | 401 Unauthorized | [ ] |
+| 6 | No authentication token | 401 Unauthorized | [✓] |
 | 7 | Invalid/expired token | 401 Unauthorized | [ ] |
 | 8 | Rate limit exceeded (auth endpoints) | 429 Too Many Requests | [ ] |
 
