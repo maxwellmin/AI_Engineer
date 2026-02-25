@@ -166,6 +166,43 @@ class TestDocumentModel:
         assert doc.file_type in ["pdf", "docx", "txt"]
         assert len(doc.file_hash) == 64
 
+    def test_document_storage_backend_default_s3(self) -> None:
+        """Test storage_backend defaults to 's3'."""
+        doc = DocumentFactory()
+
+        assert doc.storage_backend == "s3"
+
+    def test_document_storage_backend_can_be_local(self) -> None:
+        """Test storage_backend can be set to 'local'."""
+        doc = DocumentFactory(storage_backend="local")
+
+        assert doc.storage_backend == "local"
+
+    def test_document_storage_metadata_default_empty_dict(self) -> None:
+        """Test storage_metadata defaults to empty dict."""
+        doc = DocumentFactory()
+
+        assert doc.storage_metadata == {}
+
+    def test_document_storage_metadata_can_store_etag(self) -> None:
+        """Test storage_metadata can store S3 ETag."""
+        doc = DocumentFactory(
+            storage_backend="s3",
+            storage_metadata={"etag": "abc123def456", "version_id": "v1"}
+        )
+
+        assert doc.storage_metadata["etag"] == "abc123def456"
+        assert doc.storage_metadata["version_id"] == "v1"
+
+    def test_document_storage_backend_valid_choices(self) -> None:
+        """Test storage_backend accepts valid values."""
+        # Test both valid values
+        doc_s3 = DocumentFactory(storage_backend="s3")
+        doc_local = DocumentFactory(storage_backend="local")
+
+        assert doc_s3.storage_backend == "s3"
+        assert doc_local.storage_backend == "local"
+
 
 @pytest.mark.django_db
 class TestDocumentChunkModel:

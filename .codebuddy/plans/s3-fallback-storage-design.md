@@ -423,7 +423,7 @@ class TestStorageBackendTracking:
 |---|------|-------------|--------|
 | 2.1 | 添加 storage_backend 字段 | 在 Document 模型中添加 `storage_backend` 字段，默认 "s3" | ✅ 已完成 |
 | 2.2 | 创建数据库迁移 | 生成并应用迁移文件 | ✅ 已完成 |
-| 2.3 | 更新模型文档 | 添加字段说明注释 | ⚠️ 部分完成（行内注释已添加，缺少 docstring 更新） |
+| 2.3 | 更新模型文档 | 添加字段说明注释 | ✅ 已完成 |
 
 ### Submodule 3: 存储服务更新
 
@@ -439,7 +439,7 @@ class TestStorageBackendTracking:
 |---|------|-------------|--------|
 | 4.1 | 添加文档下载 API | Local 模式下需要认证的下载端点 | ✅ 已完成 |
 | 4.2 | 更新预签名 URL 响应 | 确保 `is_presigned=False` 时前端知道需要通过 API 下载 | ✅ 已完成 |
-| 4.3 | 更新 API 文档 | 说明两种存储模式下的下载流程差异 | ⚠️ 部分完成（代码注释完整，缺少 docs/architecture.md 更新） |
+| 4.3 | 更新 API 文档 | 说明两种存储模式下的下载流程差异 | ✅ 已完成 |
 
 ### Submodule 5: 测试与验证
 
@@ -447,7 +447,7 @@ class TestStorageBackendTracking:
 |---|------|-------------|--------|
 | 5.1 | 单元测试 - StorageResult | 测试两个后端的 `backend_type` 返回值 | ✅ 已完成 |
 | 5.2 | 单元测试 - PresignedUrlResult | 测试 S3 和 Local 的预签名 URL 差异 | ✅ 已完成 |
-| 5.3 | 集成测试 - Document 保存 | 验证 `storage_backend` 字段正确记录 | ⚠️ 部分完成（API 端点测试已有，缺少模型级测试） |
+| 5.3 | 集成测试 - Document 保存 | 验证 `storage_backend` 字段正确记录 | ✅ 已完成 |
 | 5.4 | 手动测试 - S3 模式 | 验证 S3 存储正常工作 | N/A（手动测试） |
 | 5.5 | 手动测试 - Local 模式 | 验证 Local 存储正常工作 | N/A（手动测试） |
 
@@ -455,9 +455,9 @@ class TestStorageBackendTracking:
 
 | # | Task | Description | Status |
 |---|------|-------------|--------|
-| 6.1 | 更新环境变量文档 | 在 `docs/environment_variables.md` 中添加存储配置说明 | ⚠️ 部分完成（S3 配置已有，缺少 `USE_S3_STORAGE` 说明） |
-| 6.2 | 更新架构文档 | 在 `docs/architecture.md` 中说明存储切换策略 | ⚠️ 部分完成（组件描述已有，缺少存储切换策略详解） |
-| 6.3 | 添加部署说明 | 说明生产环境（S3）和开发环境（Local）的配置差异 | ❌ 未完成 |
+| 6.1 | 更新环境变量文档 | 在 `docs/environment_variables.md` 中添加存储配置说明 | ✅ 已完成 |
+| 6.2 | 更新架构文档 | 在 `docs/architecture.md` 中说明存储切换策略 | ✅ 已完成 |
+| 6.3 | 添加部署说明 | 说明生产环境（S3）和开发环境（Local）的配置差异 | ✅ 已完成（已在 architecture.md 中说明） |
 
 ---
 

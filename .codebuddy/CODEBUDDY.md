@@ -6,7 +6,7 @@
 - 翻译策略：尽量保留英文专有名词本身
 - 注释策略：所有代码注释需要使用英文
 - plan策略： plan模式下生成的用户级别plan文件，按需要同步到项目目录.codebuddy/plans下面，自行寻找合适的文件
-- python调试命令：需要在poetry下面执行
+- python调试命令：需要在poetry下面执行，测试命令需要关注django配置，类似DJANGO_SETTINGS_MODULE=config.settings.local poetry run
 
 ## 项目介绍
 - 基于RAG技术的文档知识库处理工具

@@ -42,6 +42,12 @@ MODEL_MAX_TOKENS=4096
 MODEL_TEMPERATURE=0.7
 
 # S3/MinIO 配置
+
+# 存储后端选择
+# - true: 使用 S3StorageBackend (生产环境 - AWS S3 或 MinIO)
+# - false: 使用 LocalStorageBackend (开发环境 - 本地文件系统)
+USE_S3_STORAGE=false
+
 S3_ENDPOINT_URL=http://localhost:9000
 S3_ACCESS_KEY_ID=minioadmin
 S3_SECRET_ACCESS_KEY=minioadmin

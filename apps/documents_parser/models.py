@@ -12,6 +12,13 @@ class Document(models.Model):
 
     Stores information about uploaded documents including file details,
     processing status, and deduplication hash.
+
+    Attributes:
+        storage_backend: The storage backend used for this document.
+            - "s3": AWS S3 or MinIO (production)
+            - "local": Local filesystem (development)
+        storage_metadata: Additional storage-related metadata such as
+            S3 ETag for integrity verification.
     """
 
     class Status(models.TextChoices):

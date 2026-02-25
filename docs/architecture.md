@@ -48,6 +48,54 @@
 - **generate presigned url**: 用于生成临时访问链接
 - **bucket management**: 用于管理存储桶
 
+#### 存储后端切换策略
+
+项目支持两种存储后端，通过环境变量 `USE_S3_STORAGE` 进行静态切换：
+
+| 环境 | USE_S3_STORAGE | 存储后端 | 说明 |
+|------|----------------|----------|------|
+| 开发环境 | `false` | LocalStorageBackend | 本地文件系统，存储在 `MEDIA_ROOT` |
+| 生产环境 | `true` | S3StorageBackend | AWS S3 或 MinIO |
+
+**切换机制**：
+- 应用启动时根据环境变量确定使用哪个后端
+- 运行时不可动态切换（避免状态同步问题）
+- 每个 Document 记录实际使用的 `storage_backend` 字段
+
+**预签名 URL 差异**：
+- S3 模式：返回真正的预签名 URL，前端可直接使用
+- Local 模式：返回相对路径，需通过后端 API 认证下载
+
+**API 响应示例**：
+```python
+# S3 模式
+{
+    "url": "https://s3.amazonaws.com/bucket/docs/...?signature=...",
+    "expires_in": 3600,
+    "backend_type": "s3",
+    "is_presigned": true
+}
+
+# Local 模式
+{
+    "url": "/media/documents/2026/02/24/report.pdf",
+    "expires_in": 0,
+    "backend_type": "local",
+    "is_presigned": false
+}
+```
+
+**前端处理**：
+```javascript
+if (presignedResult.is_presigned) {
+    // S3: 直接使用预签名 URL
+    window.open(presignedResult.url, '_blank');
+} else {
+    // Local: 通过后端 API 认证下载
+    fetch(`/api/v1/documents/${docId}/download/`, { headers });
+}
+```
+
 ### document pipeline manager
 - **document pipeline manager**: 用于管理文档处理流水线，包括文档解析、向量化存储、向量搜索、知识图谱构建、LLM生成等步骤。结合postgreSQL跟踪记录文档处理进度，以及向量库和知识图谱的更新，可以快速找到文档处理进度，以及向量库和知识图谱的更新。
 
