@@ -36,6 +36,16 @@ class StorageBackend(ABC):
     allowing seamless switching between local filesystem and S3-compatible storage.
     """
 
+    @property
+    @abstractmethod
+    def backend_type(self) -> str:
+        """Return the backend type identifier.
+
+        Returns:
+            's3' for S3 storage backend, 'local' for local filesystem backend.
+        """
+        pass
+
     @abstractmethod
     def save(self, file_path: str, content: BinaryIO, content_type: str = "") -> StorageResult:
         """Save file content to storage.

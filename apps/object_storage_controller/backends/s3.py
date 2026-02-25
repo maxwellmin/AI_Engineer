@@ -22,6 +22,11 @@ class S3StorageBackend(StorageBackend):
     Supports both MinIO (development) and AWS S3 (production).
     """
 
+    @property
+    def backend_type(self) -> str:
+        """Return the backend type identifier."""
+        return "s3"
+
     def __init__(self) -> None:
         """Initialize S3 storage backend."""
         self._client = S3Client()

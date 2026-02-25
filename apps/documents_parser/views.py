@@ -321,6 +321,7 @@ class DocumentDownloadView(APIView):
 
     Returns:
         - 200: File content as attachment
+        - 400: S3 mode - use presigned URL endpoint instead
         - 401: Authentication required
         - 404: Document not found
     """
@@ -332,22 +333,34 @@ class DocumentDownloadView(APIView):
         try:
             document = Document.objects.get(id=id, user=request.user)
         except Document.DoesNotExist:
-            return HttpResponse(
+            return Response(
                 {"error": "Document not found"},
                 status=status.HTTP_404_NOT_FOUND,
-                content_type="application/json",
             )
 
         backend = get_storage_backend()
+
+        # S3 mode: redirect to presigned URL endpoint
+        if backend.backend_type == "s3":
+            logger.warning(
+                f"Download endpoint called in S3 mode for document {document.id}. "
+                f"Use presigned URL endpoint instead."
+            )
+            return Response(
+                {
+                    "error": "Download endpoint is for Local storage mode only. "
+                    "Use presigned URL endpoint: GET /api/v1/documents/{id}/presigned-url/",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         try:
             content = backend.read(document.file_path)
         except Exception as e:
             logger.error(f"Failed to read file {document.file_path}: {e}")
-            return HttpResponse(
+            return Response(
                 {"error": "Failed to read file"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                content_type="application/json",
             )
 
         # Determine content type

@@ -27,6 +27,11 @@ class LocalStorageBackend(StorageBackend):
     Stores files in MEDIA_ROOT directory. Useful for development without S3.
     """
 
+    @property
+    def backend_type(self) -> str:
+        """Return the backend type identifier."""
+        return "local"
+
     def __init__(self) -> None:
         """Initialize local storage backend."""
         self._root = Path(settings.MEDIA_ROOT)

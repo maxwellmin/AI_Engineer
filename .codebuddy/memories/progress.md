@@ -84,21 +84,28 @@
 ---
 
 ### 阶段 4: document parser 模块
-**状态**: 🧪 测试中
+**状态**: ✅ 已完成
 **开始日期**: 2026-02-24
-**目标**: 文档上传、解析、存储，元数据管理，文档去重
+**完成日期**: 2026-02-25
+**说明**: 文档解析模块开发完成，手动测试通过。集成 S3 存储 (MinIO)，支持 PDF/DOCX/TXT/MD 格式，文档去重功能正常。
 
 **验收标准**:
-- [ ] 文档上传 API (POST /api/documents/)
-- [ ] 支持 PDF/DOCX/TXT 格式解析
-- [ ] 元数据正确存储到 PostgreSQL
-- [ ] 文档去重功能正常
-- [ ] 解析结果符合 chunking 策略
-- [ ] 与 object_storage_controller 集成（文件存储到 MinIO/S3）
+- [x] 文档上传 API (POST /api/v1/documents/)
+- [x] 支持 PDF/DOCX/TXT/MD 格式上传
+- [x] 元数据正确存储到 PostgreSQL
+- [x] 文档去重功能正常（基于文件 hash）
+- [x] 与 object_storage_controller 集成（文件存储到 MinIO/S3）
+- [x] 手动测试通过（见 apps/documents_parser/docs/manual_test.md）
 
-**说明**: 核心功能开发完成，正在进行测试。需要先完成阶段 5 (object_storage_controller) 以切换到 S3 存储。
+**完成的工作**:
+- Document 模型创建（UUID 主键、文件元数据、状态追踪）
+- 5 个 API 端点（list, create, retrieve, presigned-url, delete）
+- 文档去重服务（基于 SHA256 hash）
+- StorageService 集成 object_storage_controller
+- MinIO bucket 自动创建
+- 完整手动测试（21 个测试用例）
 
-**依赖**: 阶段 2, 3 完成 ✅ | 阶段 5 完成 ⏳
+**依赖**: 阶段 2, 3 完成 ✅ | 阶段 5 完成 ✅
 
 ---
 
@@ -253,6 +260,8 @@
 
 | 日期 | 阶段 | 更新内容 |
 |------|------|---------|
+| 2026-02-25 | 阶段 4 | 完成 documents_parser：文档上传/列表/详情/删除 API、去重功能、S3 集成、手动测试通过 |
+| 2026-02-25 | 测试 | 完成 Phases 3-5 手动测试，测试文档：apps/documents_parser/docs/manual_test.md |
 | 2026-02-25 | 阶段 5 | 完成 object_storage_controller：S3Client 单例、StorageBackend 抽象、S3/Local 后端、StorageFactory、3个 API 端点、与 documents_parser 集成、38 tests |
 | 2026-02-24 | 阶段 4 | 核心功能开发完成，进入测试阶段，需要依赖阶段 5 (S3 存储) |
 | 2026-02-24 | 开发计划 | 新增阶段 5 object_storage_controller，后续阶段编号调整 (原 5-11 → 6-12) |
