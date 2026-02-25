@@ -34,6 +34,7 @@ class StorageResult:
     file_size: int
     file_type: str
     etag: str = ""  # S3 ETag (optional)
+    backend_type: str = "s3"  # Storage backend type: "s3" or "local"
 
 
 def _get_storage_backend() -> StorageBackend:
@@ -143,13 +144,17 @@ def save_file(*, uploaded_file: UploadedFile, user_id: str) -> StorageResult:
             content_type=uploaded_file.content_type or "application/octet-stream",
         )
 
-        logger.info(f"Saved file '{filename}' to '{file_path}' for user {user_id}")
+        logger.info(
+            f"Saved file '{filename}' to '{file_path}' for user {user_id} "
+            f"(backend: {result.backend_type})"
+        )
 
         return StorageResult(
             file_path=result.file_path,
             file_size=result.file_size,
             file_type=result.file_type,
             etag=result.etag,
+            backend_type=result.backend_type,
         )
 
     except Exception as e:

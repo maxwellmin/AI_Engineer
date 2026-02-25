@@ -76,6 +76,7 @@ class LocalStorageBackend(StorageBackend):
             file_size=file_size,
             file_type=file_type,
             etag="",  # No ETag for local storage
+            backend_type="local",
         )
 
     def read(self, file_path: str) -> bytes:
@@ -128,17 +129,18 @@ class LocalStorageBackend(StorageBackend):
     def get_presigned_url(
         self, file_path: str, expires_in: int = 3600, method: str = "GET"
     ) -> PresignedUrlResult:
-        """Generate presigned URL (not supported for local storage).
+        """Generate presigned URL for local storage.
 
-        For local storage, this returns a relative URL path.
+        For local storage, this returns a relative URL path that needs
+        to be served through Django's media serving or a dedicated download API.
 
         Args:
             file_path: Relative path of the file
-            expires_in: URL expiry (ignored for local)
-            method: HTTP method (ignored for local)
+            expires_in: URL expiry (ignored for local storage)
+            method: HTTP method (ignored for local storage)
 
         Returns:
-            PresignedUrlResult with relative URL
+            PresignedUrlResult with relative URL and is_presigned=False
         """
         # For local storage, return a relative URL
         url = f"{settings.MEDIA_URL}{file_path}"
@@ -147,6 +149,8 @@ class LocalStorageBackend(StorageBackend):
             url=url,
             expires_in=0,  # No expiry for local URLs
             method=method,
+            backend_type="local",
+            is_presigned=False,
         )
 
     def get_file_size(self, file_path: str) -> int:

@@ -46,6 +46,7 @@ class TestS3StorageBackend:
         assert result.file_size == len(sample_file_content)
         assert result.file_type == "pdf"
         assert result.etag != ""
+        assert result.backend_type == "s3"
 
     @mock_aws
     def test_read_file(self, sample_file_content, sample_file_path):
@@ -128,6 +129,8 @@ class TestS3StorageBackend:
         assert result.url is not None
         assert result.expires_in == 3600
         assert result.method == "GET"
+        assert result.backend_type == "s3"
+        assert result.is_presigned is True
 
     @mock_aws
     def test_get_file_size(self, sample_file_content, sample_file_path):
@@ -180,6 +183,7 @@ class TestLocalStorageBackend:
         assert result.file_path == sample_file_path
         assert result.file_size == len(sample_file_content)
         assert result.file_type == "pdf"
+        assert result.backend_type == "local"
 
     def test_read_file(self, sample_file_content, sample_file_path):
         """Test reading file from local filesystem."""
@@ -241,3 +245,19 @@ class TestLocalStorageBackend:
 
         with pytest.raises(FileNotFoundError):
             backend.read("nonexistent/file.txt")
+
+    def test_get_presigned_url(self, sample_file_path):
+        """Test presigned URL generation for local storage returns relative path."""
+        backend = LocalStorageBackend()
+
+        result = backend.get_presigned_url(
+            file_path=sample_file_path,
+            expires_in=3600,
+            method="GET",
+        )
+
+        assert result.url is not None
+        assert result.expires_in == 0  # No expiry for local
+        assert result.method == "GET"
+        assert result.backend_type == "local"
+        assert result.is_presigned is False  # Local storage doesn't have real presigned URLs

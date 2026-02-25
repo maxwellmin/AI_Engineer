@@ -52,6 +52,10 @@ class Document(models.Model):
     description = models.TextField(blank=True, default="")
     author = models.CharField(max_length=255, blank=True, default="")
 
+    # Storage metadata
+    storage_backend = models.CharField(max_length=20, default="s3")  # "s3" or "local"
+    storage_metadata = models.JSONField(default=dict, blank=True)  # etag, etc.
+
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

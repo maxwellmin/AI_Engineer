@@ -154,6 +154,7 @@ class DocumentUploadSerializer(serializers.Serializer):
             title=validated_data.get("title", ""),
             description=validated_data.get("description", ""),
             status=Document.Status.UPLOADED,
+            storage_backend=storage_result.backend_type,
         )
 
         logger.info(
@@ -180,6 +181,8 @@ class DocumentListSerializer(serializers.ModelSerializer):
     Lightweight serializer for listing documents with essential fields.
     """
 
+    storage_backend = serializers.CharField(read_only=True)
+
     class Meta:
         model = Document
         fields = [
@@ -190,6 +193,7 @@ class DocumentListSerializer(serializers.ModelSerializer):
             "file_size",
             "status",
             "title",
+            "storage_backend",
             "created_at",
         ]
         read_only_fields = fields
@@ -223,6 +227,7 @@ class DocumentDetailSerializer(serializers.ModelSerializer):
 
     chunks_count = serializers.SerializerMethodField()
     chunks = DocumentChunkSerializer(many=True, read_only=True)
+    storage_backend = serializers.CharField(read_only=True)
 
     class Meta:
         model = Document
@@ -236,6 +241,7 @@ class DocumentDetailSerializer(serializers.ModelSerializer):
             "title",
             "description",
             "author",
+            "storage_backend",
             "chunks_count",
             "chunks",
             "error_message",

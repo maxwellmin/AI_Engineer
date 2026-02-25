@@ -522,3 +522,223 @@ class TestDocumentDelete:
         response = api_client.delete(url)
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+class TestDocumentPresignedUrl:
+    """Tests for document presigned URL endpoint."""
+
+    @pytest.fixture
+    def api_client(self) -> APIClient:
+        """Return unauthenticated API client."""
+        return APIClient()
+
+    @pytest.fixture
+    def test_user(self):
+        """Create a test user."""
+        return UserFactory.create_user(
+            username="presigneduser",
+            email="presigned@example.com",
+            password="presignedpass123",
+        )
+
+    @pytest.fixture
+    def authenticated_client(self, api_client: APIClient, test_user) -> APIClient:
+        """Return authenticated API client."""
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        refresh = RefreshToken.for_user(test_user)
+        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+        return api_client
+
+    @pytest.fixture
+    def temp_media(self, settings, tmp_path):
+        """Override MEDIA_ROOT with temporary directory and use local storage."""
+        settings.MEDIA_ROOT = tmp_path / "media"
+        settings.MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
+        settings.USE_S3_STORAGE = False
+
+        # Reset storage backend
+        from apps.object_storage_controller.services.factory import reset_storage_backend
+        from apps.object_storage_controller.services.s3_client import S3Client
+
+        reset_storage_backend()
+        S3Client.reset_instance()
+
+        return settings.MEDIA_ROOT
+
+    def test_presigned_url_local_mode(
+        self, authenticated_client, test_user, temp_media
+    ):
+        """Test presigned URL in local mode returns relative path."""
+        document = DocumentFactory(
+            user=test_user,
+            file_path="documents/2026/02/25/test.pdf",
+        )
+
+        url = reverse("documents_parser:presigned-url", kwargs={"id": document.id})
+        response = authenticated_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["backend_type"] == "local"
+        assert response.data["is_presigned"] is False
+        assert response.data["expires_in"] == 0
+        assert "/media/documents/" in response.data["url"]
+
+    def test_presigned_url_not_found(self, authenticated_client):
+        """Test presigned URL for non-existent document returns 404."""
+        from uuid import uuid4
+
+        url = reverse("documents_parser:presigned-url", kwargs={"id": uuid4()})
+        response = authenticated_client.get(url)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_presigned_url_other_user_document(self, authenticated_client):
+        """Test presigned URL for another user's document returns 404."""
+        another_user = UserFactory.create_user(
+            username="anotherpresigneduser",
+            email="anotherpresigned@example.com",
+            password="anotherpass123",
+        )
+        document = DocumentFactory(user=another_user)
+
+        url = reverse("documents_parser:presigned-url", kwargs={"id": document.id})
+        response = authenticated_client.get(url)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_presigned_url_unauthenticated(self, api_client, test_user):
+        """Test presigned URL without authentication returns 401."""
+        document = DocumentFactory(user=test_user)
+
+        url = reverse("documents_parser:presigned-url", kwargs={"id": document.id})
+        response = api_client.get(url)
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+class TestDocumentDownload:
+    """Tests for document download endpoint."""
+
+    @pytest.fixture
+    def api_client(self) -> APIClient:
+        """Return unauthenticated API client."""
+        return APIClient()
+
+    @pytest.fixture
+    def test_user(self):
+        """Create a test user."""
+        return UserFactory.create_user(
+            username="downloaduser",
+            email="download@example.com",
+            password="downloadpass123",
+        )
+
+    @pytest.fixture
+    def authenticated_client(self, api_client: APIClient, test_user) -> APIClient:
+        """Return authenticated API client."""
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        refresh = RefreshToken.for_user(test_user)
+        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+        return api_client
+
+    @pytest.fixture
+    def temp_media(self, settings, tmp_path):
+        """Override MEDIA_ROOT with temporary directory and use local storage."""
+        settings.MEDIA_ROOT = tmp_path / "media"
+        settings.MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
+        settings.USE_S3_STORAGE = False
+
+        # Reset storage backend
+        from apps.object_storage_controller.services.factory import reset_storage_backend
+        from apps.object_storage_controller.services.s3_client import S3Client
+
+        reset_storage_backend()
+        S3Client.reset_instance()
+
+        return settings.MEDIA_ROOT
+
+    def test_download_file_success(
+        self, authenticated_client, test_user, temp_media
+    ):
+        """Test downloading file returns correct content."""
+        from pathlib import Path
+
+        # Create document with actual file
+        document = DocumentFactory(
+            user=test_user,
+            file_path="documents/2026/02/25/test.txt",
+            file_type="txt",
+            original_name="my_document.txt",
+        )
+
+        # Create the physical file
+        file_path = Path(temp_media) / "documents" / "2026" / "02" / "25" / "test.txt"
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        file_path.write_bytes(b"test content for download")
+
+        url = reverse("documents_parser:download", kwargs={"id": document.id})
+        response = authenticated_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.content == b"test content for download"
+        assert "attachment" in response["Content-Disposition"]
+        assert "my_document.txt" in response["Content-Disposition"]
+
+    def test_download_pdf_file(
+        self, authenticated_client, test_user, temp_media
+    ):
+        """Test downloading PDF file returns correct content type."""
+        from pathlib import Path
+
+        document = DocumentFactory(
+            user=test_user,
+            file_path="documents/2026/02/25/test.pdf",
+            file_type="pdf",
+            original_name="report.pdf",
+        )
+
+        file_path = Path(temp_media) / "documents" / "2026" / "02" / "25" / "test.pdf"
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        file_path.write_bytes(b"%PDF-1.4 test content")
+
+        url = reverse("documents_parser:download", kwargs={"id": document.id})
+        response = authenticated_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response["Content-Type"] == "application/pdf"
+
+    def test_download_not_found(self, authenticated_client):
+        """Test downloading non-existent document returns 404."""
+        from uuid import uuid4
+
+        url = reverse("documents_parser:download", kwargs={"id": uuid4()})
+        response = authenticated_client.get(url)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_download_other_user_document(self, authenticated_client):
+        """Test downloading another user's document returns 404."""
+        another_user = UserFactory.create_user(
+            username="anotherdownloaduser",
+            email="anotherdownload@example.com",
+            password="anotherpass123",
+        )
+        document = DocumentFactory(user=another_user)
+
+        url = reverse("documents_parser:download", kwargs={"id": document.id})
+        response = authenticated_client.get(url)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_download_unauthenticated(self, api_client, test_user):
+        """Test download without authentication returns 401."""
+        document = DocumentFactory(user=test_user)
+
+        url = reverse("documents_parser:download", kwargs={"id": document.id})
+        response = api_client.get(url)
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED

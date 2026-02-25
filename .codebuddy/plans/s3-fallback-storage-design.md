@@ -411,53 +411,53 @@ class TestStorageBackendTracking:
 
 | # | Task | Description | Status |
 |---|------|-------------|--------|
-| 1.1 | 扩展 StorageResult | 添加 `backend_type` 字段标识实际使用的存储后端 | 待办 |
-| 1.2 | 扩展 PresignedUrlResult | 添加 `backend_type` 和 `is_presigned` 字段 | 待办 |
-| 1.3 | 更新 S3StorageBackend | 返回结果中填充 `backend_type="s3"` | 待办 |
-| 1.4 | 更新 LocalStorageBackend | 返回结果中填充 `backend_type="local"` | 待办 |
-| 1.5 | 添加 Local 预签名 URL 说明 | 更新 `get_presigned_url` 方法注释，说明本地存储返回相对路径 | 待办 |
+| 1.1 | 扩展 StorageResult | 添加 `backend_type` 字段标识实际使用的存储后端 | ✅ 已完成 |
+| 1.2 | 扩展 PresignedUrlResult | 添加 `backend_type` 和 `is_presigned` 字段 | ✅ 已完成 |
+| 1.3 | 更新 S3StorageBackend | 返回结果中填充 `backend_type="s3"` | ✅ 已完成 |
+| 1.4 | 更新 LocalStorageBackend | 返回结果中填充 `backend_type="local"` | ✅ 已完成 |
+| 1.5 | 添加 Local 预签名 URL 说明 | 更新 `get_presigned_url` 方法注释，说明本地存储返回相对路径 | ✅ 已完成 |
 
 ### Submodule 2: Document 模型扩展
 
 | # | Task | Description | Status |
 |---|------|-------------|--------|
-| 2.1 | 添加 storage_backend 字段 | 在 Document 模型中添加 `storage_backend` 字段，默认 "s3" | 待办 |
-| 2.2 | 创建数据库迁移 | 生成并应用迁移文件 | 待办 |
-| 2.3 | 更新模型文档 | 添加字段说明注释 | 待办 |
+| 2.1 | 添加 storage_backend 字段 | 在 Document 模型中添加 `storage_backend` 字段，默认 "s3" | ✅ 已完成 |
+| 2.2 | 创建数据库迁移 | 生成并应用迁移文件 | ✅ 已完成 |
+| 2.3 | 更新模型文档 | 添加字段说明注释 | ⚠️ 部分完成（行内注释已添加，缺少 docstring 更新） |
 
 ### Submodule 3: 存储服务更新
 
 | # | Task | Description | Status |
 |---|------|-------------|--------|
-| 3.1 | 更新 save_file 服务 | 保存文件后记录 `storage_backend` 到 Document 实例 | 待办 |
-| 3.2 | 添加 storage_metadata 字段 | （可选）添加 JSONField 存储额外元数据如 etag | 待办 |
-| 3.3 | 更新日志记录 | 在切换存储后端时记录日志 | 待办 |
+| 3.1 | 更新 save_file 服务 | 保存文件后记录 `storage_backend` 到 Document 实例 | ✅ 已完成 |
+| 3.2 | 添加 storage_metadata 字段 | （可选）添加 JSONField 存储额外元数据如 etag | ✅ 已完成 |
+| 3.3 | 更新日志记录 | 在切换存储后端时记录日志 | ✅ 已完成 |
 
 ### Submodule 4: 预签名 URL 处理优化
 
 | # | Task | Description | Status |
 |---|------|-------------|--------|
-| 4.1 | 添加文档下载 API | Local 模式下需要认证的下载端点 | 待办 |
-| 4.2 | 更新预签名 URL 响应 | 确保 `is_presigned=False` 时前端知道需要通过 API 下载 | 待办 |
-| 4.3 | 更新 API 文档 | 说明两种存储模式下的下载流程差异 | 待办 |
+| 4.1 | 添加文档下载 API | Local 模式下需要认证的下载端点 | ✅ 已完成 |
+| 4.2 | 更新预签名 URL 响应 | 确保 `is_presigned=False` 时前端知道需要通过 API 下载 | ✅ 已完成 |
+| 4.3 | 更新 API 文档 | 说明两种存储模式下的下载流程差异 | ⚠️ 部分完成（代码注释完整，缺少 docs/architecture.md 更新） |
 
 ### Submodule 5: 测试与验证
 
 | # | Task | Description | Status |
 |---|------|-------------|--------|
-| 5.1 | 单元测试 - StorageResult | 测试两个后端的 `backend_type` 返回值 | 待办 |
-| 5.2 | 单元测试 - PresignedUrlResult | 测试 S3 和 Local 的预签名 URL 差异 | 待办 |
-| 5.3 | 集成测试 - Document 保存 | 验证 `storage_backend` 字段正确记录 | 待办 |
-| 5.4 | 手动测试 - S3 模式 | 验证 S3 存储正常工作 | 待办 |
-| 5.5 | 手动测试 - Local 模式 | 验证 Local 存储正常工作 | 待办 |
+| 5.1 | 单元测试 - StorageResult | 测试两个后端的 `backend_type` 返回值 | ✅ 已完成 |
+| 5.2 | 单元测试 - PresignedUrlResult | 测试 S3 和 Local 的预签名 URL 差异 | ✅ 已完成 |
+| 5.3 | 集成测试 - Document 保存 | 验证 `storage_backend` 字段正确记录 | ⚠️ 部分完成（API 端点测试已有，缺少模型级测试） |
+| 5.4 | 手动测试 - S3 模式 | 验证 S3 存储正常工作 | N/A（手动测试） |
+| 5.5 | 手动测试 - Local 模式 | 验证 Local 存储正常工作 | N/A（手动测试） |
 
 ### Submodule 6: 文档与配置
 
 | # | Task | Description | Status |
 |---|------|-------------|--------|
-| 6.1 | 更新环境变量文档 | 在 `docs/environment_variables.md` 中添加存储配置说明 | 待办 |
-| 6.2 | 更新架构文档 | 在 `docs/architecture.md` 中说明存储切换策略 | 待办 |
-| 6.3 | 添加部署说明 | 说明生产环境（S3）和开发环境（Local）的配置差异 | 待办 |
+| 6.1 | 更新环境变量文档 | 在 `docs/environment_variables.md` 中添加存储配置说明 | ⚠️ 部分完成（S3 配置已有，缺少 `USE_S3_STORAGE` 说明） |
+| 6.2 | 更新架构文档 | 在 `docs/architecture.md` 中说明存储切换策略 | ⚠️ 部分完成（组件描述已有，缺少存储切换策略详解） |
+| 6.3 | 添加部署说明 | 说明生产环境（S3）和开发环境（Local）的配置差异 | ❌ 未完成 |
 
 ---
 

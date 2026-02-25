@@ -9,7 +9,9 @@ from django.urls import path
 from apps.documents_parser.views import (
     DocumentDeleteView,
     DocumentDetailView,
+    DocumentDownloadView,
     DocumentListCreateView,
+    DocumentPresignedUrlView,
 )
 
 app_name = "documents_parser"
@@ -27,6 +29,18 @@ urlpatterns = [
         "<uuid:id>/",
         DocumentDetailView.as_view(),
         name="detail",
+    ),
+    # GET /api/v1/documents/{id}/presigned-url/ - Get presigned URL
+    path(
+        "<uuid:id>/presigned-url/",
+        DocumentPresignedUrlView.as_view(),
+        name="presigned-url",
+    ),
+    # GET /api/v1/documents/{id}/download/ - Download file (for Local mode)
+    path(
+        "<uuid:id>/download/",
+        DocumentDownloadView.as_view(),
+        name="download",
     ),
     # DELETE /api/v1/documents/{id}/delete/ - Delete document
     path(

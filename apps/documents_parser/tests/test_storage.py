@@ -95,6 +95,7 @@ class TestSaveFile:
         assert isinstance(result.file_path, str)
         assert isinstance(result.file_size, int)
         assert isinstance(result.file_type, str)
+        assert result.backend_type == "s3"  # Default is S3 in tests
 
     def test_saves_txt_file(self, uploaded_txt, mock_s3_storage, test_user):
         """Should save txt files correctly."""

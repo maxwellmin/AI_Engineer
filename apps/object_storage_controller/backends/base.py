@@ -15,15 +15,18 @@ class StorageResult:
     file_size: int  # File size in bytes
     file_type: str  # File extension (e.g., 'pdf', 'docx')
     etag: str = ""  # S3 ETag for verification (optional)
+    backend_type: str = "s3"  # Storage backend type: "s3" or "local"
 
 
 @dataclass(frozen=True)
 class PresignedUrlResult:
     """Immutable result of presigned URL generation."""
 
-    url: str  # Presigned URL
-    expires_in: int  # Expiry time in seconds
+    url: str  # Presigned URL or relative path
+    expires_in: int  # Expiry time in seconds (0 for local)
     method: str  # HTTP method ('GET' or 'PUT')
+    backend_type: str = "s3"  # Storage backend type: "s3" or "local"
+    is_presigned: bool = True  # True for S3 presigned URL, False for local relative path
 
 
 class StorageBackend(ABC):

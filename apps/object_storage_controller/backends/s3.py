@@ -58,6 +58,7 @@ class S3StorageBackend(StorageBackend):
             file_size=file_size,
             file_type=file_type,
             etag=etag,
+            backend_type="s3",
         )
 
     def read(self, file_path: str) -> bytes:
@@ -116,6 +117,8 @@ class S3StorageBackend(StorageBackend):
             url=url,
             expires_in=expires_in,
             method=method,
+            backend_type="s3",
+            is_presigned=True,
         )
 
     def get_file_size(self, file_path: str) -> int:
