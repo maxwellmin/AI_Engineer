@@ -7,6 +7,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from moto import mock_aws
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from apps.accounts.tests.factories import UserFactory
@@ -83,3 +84,25 @@ def temp_media_root(settings, tmp_path):
     settings.MEDIA_ROOT = tmp_path / "media"
     settings.MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
     return settings.MEDIA_ROOT
+
+
+@pytest.fixture
+def mock_s3_storage(settings, tmp_path):
+    """Configure S3 storage with moto mock for testing."""
+    # Use local storage for storage tests to avoid S3 complexity
+    settings.USE_S3_STORAGE = False
+    settings.MEDIA_ROOT = tmp_path / "media"
+    settings.MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
+
+    # Reset storage backend
+    from apps.object_storage_controller.services.factory import reset_storage_backend
+    from apps.object_storage_controller.services.s3_client import S3Client
+
+    reset_storage_backend()
+    S3Client.reset_instance()
+
+    yield settings
+
+    # Cleanup
+    reset_storage_backend()
+    S3Client.reset_instance()

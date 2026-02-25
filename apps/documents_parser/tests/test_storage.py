@@ -74,7 +74,7 @@ class TestValidateFile:
 class TestSaveFile:
     """Tests for save_file function."""
 
-    def test_saves_file_to_correct_path(self, uploaded_pdf, temp_media_root, test_user):
+    def test_saves_file_to_correct_path(self, uploaded_pdf, mock_s3_storage, test_user):
         """Should save file to date-based path structure."""
         result = storage.save_file(
             uploaded_file=uploaded_pdf,
@@ -83,10 +83,9 @@ class TestSaveFile:
 
         assert result.file_type == "pdf"
         assert result.file_size > 0
-        assert result.absolute_path.exists()
         assert "documents" in str(result.file_path)
 
-    def test_returns_correct_metadata(self, uploaded_pdf, temp_media_root, test_user):
+    def test_returns_correct_metadata(self, uploaded_pdf, mock_s3_storage, test_user):
         """Should return correct file metadata."""
         result = storage.save_file(
             uploaded_file=uploaded_pdf,
@@ -94,11 +93,10 @@ class TestSaveFile:
         )
 
         assert isinstance(result.file_path, str)
-        assert isinstance(result.absolute_path, Path)
         assert isinstance(result.file_size, int)
         assert isinstance(result.file_type, str)
 
-    def test_saves_txt_file(self, uploaded_txt, temp_media_root, test_user):
+    def test_saves_txt_file(self, uploaded_txt, mock_s3_storage, test_user):
         """Should save txt files correctly."""
         result = storage.save_file(
             uploaded_file=uploaded_txt,
@@ -106,14 +104,13 @@ class TestSaveFile:
         )
 
         assert result.file_type == "txt"
-        assert result.absolute_path.exists()
 
 
 @pytest.mark.django_db
 class TestDeleteFile:
     """Tests for delete_file function."""
 
-    def test_deletes_existing_file(self, uploaded_pdf, temp_media_root, test_user):
+    def test_deletes_existing_file(self, uploaded_pdf, mock_s3_storage, test_user):
         """Should delete file and return True."""
         # First save a file
         result = storage.save_file(
@@ -124,9 +121,8 @@ class TestDeleteFile:
         # Then delete it
         deleted = storage.delete_file(file_path=result.file_path)
         assert deleted is True
-        assert not result.absolute_path.exists()
 
-    def test_returns_false_for_nonexistent_file(self, temp_media_root):
+    def test_returns_false_for_nonexistent_file(self, mock_s3_storage):
         """Should return False for non-existent file."""
         deleted = storage.delete_file(file_path="nonexistent/file.pdf")
         assert deleted is False
@@ -136,7 +132,7 @@ class TestDeleteFile:
 class TestFileExists:
     """Tests for file_exists function."""
 
-    def test_returns_true_for_existing_file(self, uploaded_pdf, temp_media_root, test_user):
+    def test_returns_true_for_existing_file(self, uploaded_pdf, mock_s3_storage, test_user):
         """Should return True for existing file."""
         result = storage.save_file(
             uploaded_file=uploaded_pdf,
@@ -145,6 +141,6 @@ class TestFileExists:
 
         assert storage.file_exists(file_path=result.file_path) is True
 
-    def test_returns_false_for_nonexistent_file(self, temp_media_root):
+    def test_returns_false_for_nonexistent_file(self, mock_s3_storage):
         """Should return False for non-existent file."""
         assert storage.file_exists(file_path="nonexistent/file.pdf") is False

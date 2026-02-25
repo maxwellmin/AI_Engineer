@@ -103,17 +103,30 @@
 ---
 
 ### 阶段 5: object_storage_controller
-**状态**: ⏳ 未开始
+**状态**: ✅ 已完成
+**开始日期**: 2026-02-25
+**完成日期**: 2026-02-25
 **目标**: S3/MinIO 文件存储，上传/下载/预签名 URL
 
 **验收标准**:
-- [ ] MinIO 连接器封装完成
-- [ ] 文件上传功能 (支持大文件分片上传)
-- [ ] 文件下载功能
-- [ ] 文件删除功能
-- [ ] 预签名 URL 生成
-- [ ] Bucket 管理功能
-- [ ] 与 document parser 集成
+- [x] MinIO 连接器封装完成
+- [x] 文件上传功能
+- [x] 文件下载功能
+- [x] 文件删除功能
+- [x] 预签名 URL 生成
+- [x] Bucket 管理功能
+- [x] 与 document parser 集成
+
+**完成的工作**:
+- 创建 object_storage_controller 应用
+- 实现 S3Client 单例模式封装 boto3
+- 实现 StorageBackend 抽象接口
+- 实现 S3StorageBackend 和 LocalStorageBackend
+- 实现 StorageFactory 工厂模式
+- 创建 3 个 API 端点: presigned-upload, presigned-download, confirm-upload
+- 重构 documents_parser/services/storage.py 使用存储后端抽象
+- 完整测试套件 (38 tests)
+- 全部测试通过 (216 tests total)
 
 **技术方案**:
 - 开发环境: MinIO (已在 docker-compose.yml 配置)
@@ -240,6 +253,7 @@
 
 | 日期 | 阶段 | 更新内容 |
 |------|------|---------|
+| 2026-02-25 | 阶段 5 | 完成 object_storage_controller：S3Client 单例、StorageBackend 抽象、S3/Local 后端、StorageFactory、3个 API 端点、与 documents_parser 集成、38 tests |
 | 2026-02-24 | 阶段 4 | 核心功能开发完成，进入测试阶段，需要依赖阶段 5 (S3 存储) |
 | 2026-02-24 | 开发计划 | 新增阶段 5 object_storage_controller，后续阶段编号调整 (原 5-11 → 6-12) |
 | 2026-02-24 | 阶段 3 | 完成用户管理模块：User模型、5个序列化器、6个API端点、权限类、Admin配置、完整测试套件 |

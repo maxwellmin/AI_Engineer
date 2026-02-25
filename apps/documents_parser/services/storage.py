@@ -1,8 +1,8 @@
 """
 File storage service for document management.
 
-Provides abstraction over file storage operations with support
-for local filesystem storage, designed for future S3 compatibility.
+Provides abstraction over file storage operations using the storage backend
+abstraction layer. Supports both local filesystem and S3-compatible storage.
 """
 
 from __future__ import annotations
@@ -21,7 +21,7 @@ from django.core.files.uploadedfile import UploadedFile
 from core.exceptions import DocumentProcessingError, ValidationError
 
 if TYPE_CHECKING:
-    pass
+    from apps.object_storage_controller.backends.base import StorageBackend
 
 logger = logging.getLogger(__name__)
 
@@ -30,13 +30,23 @@ logger = logging.getLogger(__name__)
 class StorageResult:
     """Immutable result of file storage operation."""
 
-    file_path: str  # Relative path from MEDIA_ROOT
-    absolute_path: Path  # Absolute filesystem path
+    file_path: str  # Object key/path in storage
     file_size: int
     file_type: str
+    etag: str = ""  # S3 ETag (optional)
 
 
-def get_storage_path(*, filename: str, date_prefix: date | None = None) -> Path:
+def _get_storage_backend() -> StorageBackend:
+    """Get storage backend instance.
+
+    Lazy import to avoid circular dependencies.
+    """
+    from apps.object_storage_controller.services.factory import get_storage_backend
+
+    return get_storage_backend()
+
+
+def get_storage_path(*, filename: str, date_prefix: date | None = None) -> str:
     """
     Generate storage path with date-based directory structure.
 
@@ -45,11 +55,11 @@ def get_storage_path(*, filename: str, date_prefix: date | None = None) -> Path:
         date_prefix: Date for path structure (defaults to today).
 
     Returns:
-        Path relative to MEDIA_ROOT.
+        Storage path string (e.g., 'documents/2026/02/24/report.pdf')
 
     Example:
         >>> get_storage_path(filename="report.pdf")
-        Path("documents/2026/02/24/report.pdf")
+        "documents/2026/02/24/report.pdf"
     """
     config = getattr(settings, "DOCUMENT_STORAGE_CONFIG", {})
     base_dir = config.get("upload_to", "documents")
@@ -63,7 +73,7 @@ def get_storage_path(*, filename: str, date_prefix: date | None = None) -> Path:
     # Generate unique filename to avoid collisions
     unique_filename = _generate_unique_filename(safe_filename)
 
-    return Path(base_dir) / str(date_val.year) / f"{date_val.month:02d}" / f"{date_val.day:02d}" / unique_filename
+    return f"{base_dir}/{date_val.year}/{date_val.month:02d}/{date_val.day:02d}/{unique_filename}"
 
 
 def validate_file(*, uploaded_file: UploadedFile) -> str:
@@ -103,7 +113,7 @@ def validate_file(*, uploaded_file: UploadedFile) -> str:
 
 def save_file(*, uploaded_file: UploadedFile, user_id: str) -> StorageResult:
     """
-    Save uploaded file to storage with date-based path structure.
+    Save uploaded file to storage using the configured backend.
 
     Args:
         uploaded_file: Django UploadedFile instance.
@@ -121,32 +131,30 @@ def save_file(*, uploaded_file: UploadedFile, user_id: str) -> StorageResult:
 
     # Generate storage path
     filename = uploaded_file.name or f"document.{file_type}"
-    relative_path = get_storage_path(filename=filename)
-    absolute_path = Path(settings.MEDIA_ROOT) / relative_path
+    file_path = get_storage_path(filename=filename)
 
-    # Create directory structure
-    absolute_path.parent.mkdir(parents=True, exist_ok=True)
+    # Get storage backend and save file
+    backend = _get_storage_backend()
 
-    # Write file
     try:
-        with open(absolute_path, "wb") as destination:
-            for chunk in uploaded_file.chunks():
-                destination.write(chunk)
+        result = backend.save(
+            file_path=file_path,
+            content=uploaded_file,
+            content_type=uploaded_file.content_type or "application/octet-stream",
+        )
+
+        logger.info(f"Saved file '{filename}' to '{file_path}' for user {user_id}")
+
+        return StorageResult(
+            file_path=result.file_path,
+            file_size=result.file_size,
+            file_type=result.file_type,
+            etag=result.etag,
+        )
+
     except Exception as e:
         logger.error(f"Failed to save file {filename}: {e}")
         raise DocumentProcessingError(detail=f"Failed to save file: {e}")
-
-    # Get file size
-    file_size = absolute_path.stat().st_size
-
-    logger.info(f"Saved file {filename} to {relative_path} for user {user_id}")
-
-    return StorageResult(
-        file_path=str(relative_path),
-        absolute_path=absolute_path,
-        file_size=file_size,
-        file_type=file_type,
-    )
 
 
 def delete_file(*, file_path: str) -> bool:
@@ -154,7 +162,7 @@ def delete_file(*, file_path: str) -> bool:
     Delete file from storage.
 
     Args:
-        file_path: Relative path from MEDIA_ROOT.
+        file_path: Storage path/object key.
 
     Returns:
         True if file was deleted, False if it didn't exist.
@@ -162,15 +170,13 @@ def delete_file(*, file_path: str) -> bool:
     Raises:
         DocumentProcessingError: If deletion fails unexpectedly.
     """
-    absolute_path = Path(settings.MEDIA_ROOT) / file_path
-
-    if not absolute_path.exists():
-        return False
+    backend = _get_storage_backend()
 
     try:
-        absolute_path.unlink()
-        logger.info(f"Deleted file: {file_path}")
-        return True
+        result = backend.delete(file_path)
+        if result:
+            logger.info(f"Deleted file: {file_path}")
+        return result
     except Exception as e:
         logger.error(f"Failed to delete file {file_path}: {e}")
         raise DocumentProcessingError(detail=f"Failed to delete file: {e}")
@@ -181,13 +187,35 @@ def file_exists(*, file_path: str) -> bool:
     Check if file exists in storage.
 
     Args:
-        file_path: Relative path from MEDIA_ROOT.
+        file_path: Storage path/object key.
 
     Returns:
         True if file exists, False otherwise.
     """
-    absolute_path = Path(settings.MEDIA_ROOT) / file_path
-    return absolute_path.exists()
+    backend = _get_storage_backend()
+    return backend.exists(file_path)
+
+
+def get_file_size(*, file_path: str) -> int:
+    """
+    Get file size in bytes.
+
+    Args:
+        file_path: Storage path/object key.
+
+    Returns:
+        File size in bytes.
+
+    Raises:
+        DocumentProcessingError: If file doesn't exist or operation fails.
+    """
+    backend = _get_storage_backend()
+
+    try:
+        return backend.get_file_size(file_path)
+    except Exception as e:
+        logger.error(f"Failed to get file size for {file_path}: {e}")
+        raise DocumentProcessingError(detail=f"Failed to get file size: {e}")
 
 
 def _sanitize_filename(filename: str) -> str:

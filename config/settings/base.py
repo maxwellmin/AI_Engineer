@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     "apps.neo4j_database_controller",
     "apps.embedding_engine",
     "apps.rag_processing",
+    "apps.object_storage_controller",
 ]
 
 MIDDLEWARE = [
@@ -250,6 +251,23 @@ DOCUMENT_STORAGE_CONFIG = {
     "max_file_size": 100 * 1024 * 1024,  # 100MB
     "allowed_extensions": ["pdf", "docx", "doc", "txt", "md"],
 }
+
+# =============================================================================
+# S3/MinIO Object Storage Configuration
+# =============================================================================
+
+S3_ENDPOINT_URL = os.environ.get("S3_ENDPOINT_URL", "")  # Empty for AWS S3
+S3_ACCESS_KEY_ID = os.environ.get("S3_ACCESS_KEY_ID", "")
+S3_SECRET_ACCESS_KEY = os.environ.get("S3_SECRET_ACCESS_KEY", "")
+S3_REGION_NAME = os.environ.get("S3_REGION_NAME", "us-east-1")
+S3_BUCKET_NAME = os.environ.get("S3_BUCKET_NAME", "melon-documents")
+S3_USE_SSL = os.environ.get("S3_USE_SSL", "false").lower() == "true"
+
+# Storage backend selection
+USE_S3_STORAGE = os.environ.get("USE_S3_STORAGE", "false").lower() == "true"
+
+# Presigned URL configuration
+PRESIGNED_URL_EXPIRY = int(os.environ.get("PRESIGNED_URL_EXPIRY", "3600"))  # 1 hour
 
 # =============================================================================
 # Default Primary Key Field Type

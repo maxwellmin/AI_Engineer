@@ -49,9 +49,19 @@ class TestDocumentUpload:
 
     @pytest.fixture
     def temp_media(self, settings, tmp_path):
-        """Override MEDIA_ROOT with temporary directory."""
+        """Override MEDIA_ROOT with temporary directory and use local storage."""
         settings.MEDIA_ROOT = tmp_path / "media"
         settings.MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
+        # Use local storage for tests to avoid S3 complexity
+        settings.USE_S3_STORAGE = False
+
+        # Reset storage backend
+        from apps.object_storage_controller.services.factory import reset_storage_backend
+        from apps.object_storage_controller.services.s3_client import S3Client
+
+        reset_storage_backend()
+        S3Client.reset_instance()
+
         return settings.MEDIA_ROOT
 
     @pytest.fixture
@@ -431,9 +441,19 @@ class TestDocumentDelete:
 
     @pytest.fixture
     def temp_media(self, settings, tmp_path):
-        """Override MEDIA_ROOT with temporary directory."""
+        """Override MEDIA_ROOT with temporary directory and use local storage."""
         settings.MEDIA_ROOT = tmp_path / "media"
         settings.MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
+        # Use local storage for tests to avoid S3 complexity
+        settings.USE_S3_STORAGE = False
+
+        # Reset storage backend
+        from apps.object_storage_controller.services.factory import reset_storage_backend
+        from apps.object_storage_controller.services.s3_client import S3Client
+
+        reset_storage_backend()
+        S3Client.reset_instance()
+
         return settings.MEDIA_ROOT
 
     def test_delete_own_document(

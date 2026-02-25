@@ -66,3 +66,17 @@ STATICFILES_DIRS = [
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"  # noqa: F405
+
+# =============================================================================
+# S3/MinIO Storage Settings (Development)
+# =============================================================================
+
+# Development: Use existing MinIO (shared with Milvus)
+USE_S3_STORAGE = True
+S3_ENDPOINT_URL = "http://localhost:9000"
+S3_ACCESS_KEY_ID = "minioadmin"
+S3_SECRET_ACCESS_KEY = "minioadmin"
+S3_REGION_NAME = "us-east-1"
+S3_BUCKET_NAME = "melon-documents"
+S3_USE_SSL = False
+PRESIGNED_URL_EXPIRY = 3600  # 1 hour
