@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="73d6f8f2-f1e0-49df-a8a4-ca3703b1c06f" name="Changes" comment="docs: 添加任务进度管理示例模板" />
+    <list default="true" id="73d6f8f2-f1e0-49df-a8a4-ca3703b1c06f" name="Changes" comment="docs: 添加开发任务状态更新说明和测试文档存放指南" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -333,7 +333,15 @@
       <option name="project" value="LOCAL" />
       <updated>1772065193921</updated>
     </task>
-    <option name="localTasksCounter" value="28" />
+    <task id="LOCAL-00028" summary="docs: 添加开发任务状态更新说明和测试文档存放指南">
+      <option name="closed" value="true" />
+      <created>1772066400872</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1772066400872</updated>
+    </task>
+    <option name="localTasksCounter" value="29" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -402,7 +410,8 @@
     <MESSAGE value="docs: 更新手动测试文档并添加测试凭据和结果" />
     <MESSAGE value="feat: 为存储后端添加类型标识属性并修复下载端点&#10;&#10;在存储后端基类添加抽象的 backend_type 属性，并在 S3 和本地后端实现&#10;修复文档下载端点，在 S3 模式下返回 400 错误并提示使用预签名 URL&#10;更新手动测试文档记录测试结果" />
     <MESSAGE value="docs: 添加任务进度管理示例模板" />
-    <option name="LAST_COMMIT_MESSAGE" value="docs: 添加任务进度管理示例模板" />
+    <MESSAGE value="docs: 添加开发任务状态更新说明和测试文档存放指南" />
+    <option name="LAST_COMMIT_MESSAGE" value="docs: 添加开发任务状态更新说明和测试文档存放指南" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/melon$runserver.coverage" NAME="runserver Coverage Results" MODIFIED="1771896633424" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
