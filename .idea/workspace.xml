@@ -5,7 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="73d6f8f2-f1e0-49df-a8a4-ca3703b1c06f" name="Changes" comment="feat: 为存储后端添加类型标识属性并修复下载端点&#10;&#10;在存储后端基类添加抽象的 backend_type 属性，并在 S3 和本地后端实现&#10;修复文档下载端点，在 S3 模式下返回 400 错误并提示使用预签名 URL&#10;更新手动测试文档记录测试结果">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.codebuddy/agents/task-progress-manager.md" beforeDir="false" afterPath="$PROJECT_DIR$/.codebuddy/agents/task-progress-manager.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -60,7 +60,7 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "ai.playground.ignore.import.keys.banner.in.settings": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "add__s3",
+    "git-widget-placeholder": "milvusController",
     "junie.onboarding.icon.badge.shown": "true",
     "last_opened_file_path": "/Users/maxrocketman/myproject/melon",
     "node.js.detected.package.eslint": "true",
