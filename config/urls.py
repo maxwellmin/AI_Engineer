@@ -31,6 +31,7 @@ urlpatterns = [
     path("api/v1/accounts/", include("apps.accounts.urls")),
     path("api/v1/documents/", include("apps.documents_parser.urls")),
     path("api/v1/storage/", include("apps.object_storage_controller.urls")),
+    path("api/v1/milvus/", include("apps.milvus_database_controller.urls")),
 ]
 
 # Debug toolbar URLs (only in debug mode)

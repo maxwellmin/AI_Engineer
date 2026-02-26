@@ -147,18 +147,39 @@ CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
 
 MILVUS_HOST = os.environ.get("MILVUS_HOST", "localhost")
 MILVUS_PORT = int(os.environ.get("MILVUS_PORT", "19530"))
+MILVUS_URI = os.environ.get("MILVUS_URI", f"http://{MILVUS_HOST}:{MILVUS_PORT}")
+MILVUS_TOKEN = os.environ.get("MILVUS_TOKEN", "")
 
 MILVUS_CONFIG = {
+    # Connection settings
     "host": MILVUS_HOST,
     "port": MILVUS_PORT,
+    "uri": MILVUS_URI,
+    "token": MILVUS_TOKEN,
+    "timeout": 30,  # seconds
     # Collection names
     "documents_collection": "documents",
     "chat_history_collection": "chat_history",
-    # Index settings
-    "index_type": "IVF_FLAT",
+    # Vector dimensions
+    "dense_dimension": 1536,  # OpenAI/Qwen embedding dimension
+    # Dense vector index settings (HNSW)
+    "dense_index_type": "HNSW",
     "metric_type": "COSINE",
+    "hnsw_m": 32,
+    "hnsw_ef_construction": 200,
+    "hnsw_ef": 100,
+    # Sparse vector index settings (BM25)
+    "sparse_index_type": "SPARSE_INVERTED_INDEX",
+    "bm25_k1": 1.5,
+    "bm25_b": 0.75,
+    # Legacy IVF settings (deprecated, kept for backward compatibility)
+    "index_type": "IVF_FLAT",
     "nlist": 128,
     "nprobe": 10,
+    # Search defaults
+    "default_top_k": 10,
+    # Auto ID
+    "auto_id": False,
 }
 
 # =============================================================================

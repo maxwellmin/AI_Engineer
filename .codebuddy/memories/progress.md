@@ -145,16 +145,31 @@
 ---
 
 ### 阶段 6: milvus_database_controller
-**状态**: ⏳ 未开始
+**状态**: ✅ 已完成
+**开始日期**: 2026-02-25
+**完成日期**: 2026-02-26
 **目标**: 向量数据库的增删改查，封装连接器和方法
 
+**详细计划**: 见 `.codebuddy/plans/phase6-milvus-database-controller.md`
+
 **验收标准**:
-- [ ] Milvus 连接器封装完成
-- [ ] Collection 创建功能
-- [ ] 向量插入功能
-- [ ] 向量搜索功能
-- [ ] 向量删除功能
-- [ ] 连接池管理
+- [x] Milvus 连接器封装完成 (MilvusClient 单例模式)
+- [x] Collection 创建功能 (多向量模式: summary_dense + text_dense + text_sparse)
+- [x] 向量插入功能 (批量插入、upsert)
+- [x] 向量搜索功能 (单向量搜索、混合搜索、BM25)
+- [x] 向量删除功能 (按ID、按过滤器)
+- [x] 连接池管理 (单例模式)
+- [x] REST API 可用 (15+ 端点)
+- [x] 测试通过 (159 tests, 81.91% coverage)
+
+**完成的工作**:
+- 7 个子模块全部完成 (Infrastructure, Collection, Index, Vector, Search, Service, API Views)
+- MilvusClient 单例封装 (pymilvus MilvusClient)
+- 4 个 Manager (Collection, Index, Vector, Search)
+- MilvusService 门面服务统一接口
+- 15+ REST API 端点 (Health, Collections, Vectors, Search)
+- 混合搜索 (RRF/加权排序)
+- OpenAPI 文档集成 (drf-yasg)
 
 **依赖**: 阶段 2 完成 ✅
 
@@ -260,6 +275,7 @@
 
 | 日期 | 阶段 | 更新内容 |
 |------|------|---------|
+| 2026-02-26 | 阶段 6 | 完成 milvus_database_controller：7个子模块、MilvusClient单例、4个Manager、MilvusService门面、15+ REST API、混合搜索、159 tests (81.91% coverage) |
 | 2026-02-25 | 阶段 4 | 完成 documents_parser：文档上传/列表/详情/删除 API、去重功能、S3 集成、手动测试通过 |
 | 2026-02-25 | 测试 | 完成 Phases 3-5 手动测试，测试文档：apps/documents_parser/docs/manual_test.md |
 | 2026-02-25 | 阶段 5 | 完成 object_storage_controller：S3Client 单例、StorageBackend 抽象、S3/Local 后端、StorageFactory、3个 API 端点、与 documents_parser 集成、38 tests |

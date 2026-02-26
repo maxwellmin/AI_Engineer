@@ -41,6 +41,145 @@
 - **document meta management(文档级别)**: 用于维护文档元数据，如文档ID，文档名称，文档路径，文档创建时间，文档更新时间，文档大小，文档类型，文档状态等。
 - **document deduplication**: 用于去重文档，避免重复存储和处理相同的文档。结合meta以及chunking的元数据，可以快速找到chunking的部分是否已经被向量化和存储，从而避免重复处理。
 
+### Document Chunking Strategy
+
+采用 **Recursive Character Text Splitter**（递归字符分割）作为主策略，结合 **Semantic Chunking**（语义分块）作为优化方案。
+
+#### 策略选择
+
+| 策略 | 适用场景 | 优势 | 劣势 |
+|------|----------|------|------|
+| **Recursive Character Splitter** | 通用文档 | 保持段落完整性、实现简单 | 可能切断语义边界 |
+| **Semantic Chunking** | 高精度检索场景 | 语义完整性高、检索质量好 | 计算成本高、需要 embedding 调用 |
+| **Markdown-Aware Splitter** | Markdown 文档 | 保留标题层级结构 | 仅适用于 Markdown |
+
+#### 推荐方案：Recursive + Semantic 混合策略
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Chunking Pipeline                        │
+│                                                             │
+│  Raw Document                                               │
+│       │                                                     │
+│       ▼                                                     │
+│  ┌─────────────────────────────────────┐                   │
+│  │  1. Document Preprocessing          │                   │
+│  │     - 去除无关页眉页脚               │                   │
+│  │     - 提取文档标题/章节结构          │                   │
+│  └─────────────────────────────────────┘                   │
+│       │                                                     │
+│       ▼                                                     │
+│  ┌─────────────────────────────────────┐                   │
+│  │  2. Recursive Character Split       │                   │
+│  │     - 按 ["\n\n", "\n", "。", " "] 分割              │
+│  │     - chunk_size: 512 tokens                          │
+│  │     - chunk_overlap: 50 tokens                         │
+│  └─────────────────────────────────────┘                   │
+│       │                                                     │
+│       ▼                                                     │
+│  ┌─────────────────────────────────────┐                   │
+│  │  3. Semantic Merge (Optional)       │                   │
+│  │     - 计算相邻 chunk 语义相似度      │                   │
+│  │     - 相似度 > 0.8 则合并           │                   │
+│  └─────────────────────────────────────┘                   │
+│       │                                                     │
+│       ▼                                                     │
+│  ┌─────────────────────────────────────┐                   │
+│  │  4. Metadata Enrichment             │                   │
+│  │     - 添加文档标题上下文             │                   │
+│  │     - 记录章节层级信息               │                   │
+│  │     - 生成 chunk summary             │                   │
+│  └─────────────────────────────────────┘                   │
+│       │                                                     │
+│       ▼                                                     │
+│    Chunk List → Milvus                                     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### 按文档类型的参数配置
+
+| 文档类型 | chunk_size (tokens) | chunk_overlap | 分隔符优先级 | 特殊处理 |
+|----------|---------------------|---------------|--------------|----------|
+| **技术文档 (Markdown)** | 512 | 50 | `["\n## ", "\n### ", "\n\n", "\n", " "]` | 保留标题层级，添加 breadcrumb |
+| **学术论文 (PDF)** | 768 | 100 | `["\n\n", "\n", ". ", " "]` | 保留引用上下文，提取图表说明 |
+| **法律合同 (PDF/DOCX)** | 1024 | 200 | `["\n\n", "\n第", "\n", " "]` | 按条款分割，保留条款编号 |
+| **通用文本 (TXT)** | 512 | 50 | `["\n\n", "\n", "。", " ", ""]` | 无特殊处理 |
+
+#### Chunk 元数据结构
+
+```python
+{
+    "chunk_id": "uuid",
+    "document_id": "uuid",           # 父文档 ID
+    "text": "原始文本内容",
+    "summary": "LLM 生成的摘要",      # 用于 summary_dense 向量
+    "chunk_index": 0,                # 在文档中的顺序
+    "chunk_type": "paragraph",       # paragraph | title | table | code
+
+    # 层级上下文
+    "breadcrumb": ["第一章", "1.1 概述"],  # 章节路径
+    "page_number": 5,                # 原始页码（PDF）
+    "start_char": 1200,              # 在原文中的字符位置
+    "end_char": 1800,
+
+    # 邻居索引（用于上下文窗口扩展）
+    "prev_chunk_id": "uuid | null",
+    "next_chunk_id": "uuid | null",
+
+    # 向量字段
+    "text_dense": [float] * dim,     # 文本密集向量
+    "summary_dense": [float] * dim,  # 摘要密集向量
+    "text_sparse": sparse_vector     # BM25 稀疏向量
+}
+```
+
+#### 上下文窗口扩展策略
+
+检索时支持动态扩展上下文窗口：
+
+```python
+def expand_context(chunk_id: str, window_size: int = 1) -> List[Chunk]:
+    """
+    根据 chunk_id 扩展上下文窗口
+
+    Args:
+        chunk_id: 核心 chunk ID
+        window_size: 向前后扩展的 chunk 数量
+
+    Returns:
+        扩展后的 chunk 列表（按顺序）
+    """
+    # 1. 从 Milvus 获取目标 chunk
+    # 2. 通过 prev_chunk_id / next_chunk_id 链式查询
+    # 3. 拼接相邻 chunk 文本
+    # 4. 返回完整上下文
+```
+
+**检索流程**：
+```
+Query → Vector Search (top_k=5)
+    → 对每个结果调用 expand_context(window_size=1)
+    → 拼接 [prev_chunk] + [current_chunk] + [next_chunk]
+    → 构建完整上下文
+```
+
+#### 实现依赖
+
+| 组件 | 库/工具 | 说明 |
+|------|---------|------|
+| Recursive Splitter | LangChain `RecursiveCharacterTextSplitter` | 主分割器 |
+| Markdown Splitter | LangChain `MarkdownHeaderTextSplitter` | Markdown 结构化分割 |
+| Semantic Splitter | LlamaIndex `SemanticSplitterNodeParser` | 语义分块（可选） |
+| Token 计数 | tiktoken / QWEN Tokenizer | 准确计算 token 数量 |
+| Summary 生成 | QWEN API | 为每个 chunk 生成摘要 |
+
+#### 质量保障
+
+1. **最小 chunk 限制**: 单个 chunk 不小于 100 tokens，避免语义碎片化
+2. **最大 chunk 限制**: 单个 chunk 不超过 1500 tokens，控制 embedding 质量
+3. **重叠检查**: 确保 overlap 区域内容一致性
+4. **摘要验证**: Summary 与原文语义相似度 > 0.7
+
 ### object storage controller
 - **upload file**: 用于上传文件到 S3 兼容存储（MinIO/AWS S3）
 - **download file**: 用于从存储下载文件
