@@ -2,15 +2,24 @@
 
 ## Overview
 
-Implement embedding engine module for melon RAG project, providing text vectorization functionality for dense embeddings (via Qwen API) and sparse embeddings (BM25 via Milvus built-in function or self-managed vocabulary).
+Implement embedding engine module for melon RAG project, providing text vectorization functionality for dense embeddings (via Qwen API) and supporting the multi-vector schema (summary_dense + text_dense) used in Milvus database controller.
 
 ## Status: Ready for Implementation
 
 ## Dependencies
 
-- Phase 2: Basic Setup ✅
-- Phase 3: User Management Module ✅
-- Phase 6: Milvus Database Controller (in progress)
+| Dependency | Status | Notes |
+|------------|--------|-------|
+| Phase 2: Basic Setup | ✅ Completed | Django project structure ready |
+| Phase 3: User Management Module | ✅ Completed | Authentication available |
+| Phase 6: Milvus Database Controller | ✅ Completed | Vector storage ready, multi-vector schema defined |
+| Phase 4: Document Parser | ✅ Completed | Text chunking ready |
+| Phase 5: Object Storage Controller | ✅ Completed | File storage ready |
+
+**Key Integration Points:**
+- `MilvusService` expects vectors with `summary_dense` and `text_dense` fields
+- BM25 sparse embedding handled by Milvus built-in function (no implementation needed)
+- Vector dimension must match Milvus schema: 1536 (Qwen text-embedding-v1)
 
 ---
 
@@ -18,12 +27,14 @@ Implement embedding engine module for melon RAG project, providing text vectoriz
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| Dense Embedding Provider | Qwen API (text-embedding-v1) | Project standard, 1536 dimensions |
-| Sparse Embedding Strategy | Milvus Built-in BM25 | Simpler than self-managed vocabulary |
-| Embedding Interface | Service Layer Pattern | Clean API for other modules |
-| Batch Processing | Supported | Efficient for large document sets |
-| Error Handling | Retry + Fallback | Handle API rate limits and failures |
+| Dense Embedding Provider | Qwen API (text-embedding-v1) | Project standard, 1536 dimensions, matches Milvus schema |
+| Sparse Embedding Strategy | Milvus Built-in BM25 | Already implemented in Phase 6, no additional work needed |
+| Embedding Interface | Service Layer Pattern | Matches MilvusService architecture, clean API for other modules |
+| HTTP Client | httpx | Modern async-capable HTTP client |
+| Retry Logic | tenacity | Industry standard for retry with exponential backoff |
+| Error Handling | Custom Exception Hierarchy | Matches MilvusController pattern |
 | Mock Mode | Supported | Enable development without API access |
+| API Endpoints | Minimal (health + single embed) | Primary use via service layer, not HTTP API |
 
 ---
 
@@ -36,27 +47,27 @@ Implement embedding engine module for melon RAG project, providing text vectoriz
 │                    External Modules                          │
 │  (documents_parser, milvus_database_controller, rag_process) │
 └─────────────────────────┬───────────────────────────────────┘
-                          │
+                          │ Service Layer Import
                           ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                    EmbeddingService (Facade)                 │
 │  - High-level API for all embedding operations              │
 │  - Batch processing support                                  │
-│  - Caching and optimization                                  │
+│  - Dimension validation                                      │
 └─────────────────────────┬───────────────────────────────────┘
                           │
           ┌───────────────┴───────────────┐
           ▼                               ▼
 ┌──────────────────────┐      ┌──────────────────────┐
-│   DenseEmbedding     │      │   SparseEmbedding    │
-│     Provider         │      │     Provider         │
-│  (Qwen API Client)   │      │   (BM25 / Milvus)    │
+│   QwenEmbedding      │      │   MockEmbedding      │
+│     Client           │      │     Client           │
+│  (dashscope API)     │      │  (deterministic)     │
 └──────────┬───────────┘      └──────────┬───────────┘
            │                              │
            ▼                              ▼
 ┌──────────────────────┐      ┌──────────────────────┐
-│    Qwen API          │      │   Milvus BM25        │
-│  (dashscope)         │      │   (built-in)         │
+│    Qwen API          │      │   numpy random       │
+│  (dashscope)         │      │   (seeded by hash)   │
 └──────────────────────┘      └──────────────────────┘
 ```
 
@@ -66,140 +77,311 @@ Implement embedding engine module for melon RAG project, providing text vectoriz
 |------|------------|----------|-----------|-------|
 | Dense (Summary) | `summary_dense` | Qwen API | 1536 | Question/summary semantic search |
 | Dense (Text) | `text_dense` | Qwen API | 1536 | Full text semantic search |
-| Sparse (BM25) | `text_sparse` | Milvus Built-in | Variable | Keyword matching |
+| Sparse (BM25) | `text_sparse` | Milvus Built-in | Variable | Keyword matching (Phase 6) |
+
+> **Note**: BM25 sparse embedding is handled by Milvus Function in Phase 6. No implementation needed in embedding_engine.
 
 ---
 
-## Submodule Breakdown
-
-### Submodule 8.1: Infrastructure Setup
-
-**Goal**: Establish foundation for embedding operations
-
-| # | Task | Description | Status |
-|---|------|-------------|--------|
-| 1.1 | Add dependencies | Add openai, tenacity to pyproject.toml | Pending |
-| 1.2 | Create constants | Define embedding model names, dimensions, defaults | Pending |
-| 1.3 | Create exceptions | Custom exception classes for embedding operations | Pending |
-| 1.4 | Create DTOs | Dataclasses for requests and responses | Pending |
-| 1.5 | Update settings | Add EMBEDDING_CONFIG to settings | Pending |
-| 1.6 | Update environment | Add EMBEDDING_* variables to .env file | Pending |
-
-### Submodule 8.2: Dense Embedding Provider
-
-**Goal**: Implement Qwen API integration for dense embeddings
-
-| # | Task | Description | Status |
-|---|------|-------------|--------|
-| 2.1 | Create QwenAPIClient | HTTP client for Qwen embedding API | Pending |
-| 2.2 | Implement embed_single | Single text embedding with retry logic | Pending |
-| 2.3 | Implement embed_batch | Batch embedding with chunking | Pending |
-| 2.4 | Implement rate limiting | Handle API rate limits gracefully | Pending |
-| 2.5 | Implement mock provider | Mock embedding for development/testing | Pending |
-| 2.6 | Add error handling | Timeout, connection, API error handling | Pending |
-
-### Submodule 8.3: Sparse Embedding Provider (Optional)
-
-**Goal**: Implement BM25 sparse embedding support (if self-managed)
-
-| # | Task | Description | Status |
-|---|------|-------------|--------|
-| 3.1 | Create Vocabulary class | Load and manage BM25 vocabulary | Pending |
-| 3.2 | Create BM25Vectorizer | BM25 sparse vector generation | Pending |
-| 3.3 | Implement sparse embedding | Convert text to sparse vector | Pending |
-| 3.4 | Add vocabulary persistence | Save/load vocabulary from disk | Pending |
-
-> Note: If using Milvus built-in BM25 function, this submodule can be skipped. The sparse vector will be auto-generated by Milvus when inserting documents.
-
-### Submodule 8.4: Embedding Service Layer
-
-**Goal**: Provide unified service interface
-
-| # | Task | Description | Status |
-|---|------|-------------|--------|
-| 4.1 | Create EmbeddingService | Facade service coordinating all operations | Pending |
-| 4.2 | Implement embed_text | Single text embedding API | Pending |
-| 4.3 | Implement embed_texts | Batch text embedding API | Pending |
-| 4.4 | Implement embed_for_search | Query embedding for search | Pending |
-| 4.5 | Implement embed_for_storage | Document embedding for storage | Pending |
-| 4.6 | Add caching layer | Cache embeddings for repeated queries | Pending |
-
-### Submodule 8.5: Testing
-
-**Goal**: Comprehensive test coverage
-
-| # | Task | Description | Status |
-|---|------|-------------|--------|
-| 5.1 | Create test fixtures | Mock API responses, sample texts | Pending |
-| 5.2 | Write client tests | Test QwenAPIClient with mocked responses | Pending |
-| 5.3 | Write service tests | Test EmbeddingService methods | Pending |
-| 5.4 | Write integration tests | Test with real Qwen API (optional) | Pending |
-| 5.5 | Test error scenarios | Rate limit, timeout, invalid input | Pending |
-| 5.6 | Verify coverage | Ensure 80%+ test coverage | Pending |
-
----
-
-## File Structure
+## File Structure (Aligned with MilvusController Pattern)
 
 ```
 apps/embedding_engine/
-├── __init__.py
+├── __init__.py                 # App config
 ├── apps.py                     # Django AppConfig
-├── constants.py                # Model names, dimensions, defaults
-├── exceptions.py               # Custom exceptions
-├── dto.py                      # Data Transfer Objects (dataclasses)
+├── constants.py                # Model names, dimensions, defaults (Enum + constants)
+├── exceptions.py               # Custom exceptions (hierarchy matching MilvusController)
+├── dto.py                      # Data Transfer Objects (frozen dataclasses)
+├── models.py                   # Empty (no DB models needed)
+├── serializers.py              # DRF serializers for API
+├── urls.py                     # URL routing
 │
 ├── clients/
 │   ├── __init__.py
-│   ├── base.py                 # Base embedding client interface
-│   ├── qwen_client.py          # Qwen API client
-│   └── mock_client.py          # Mock client for testing
-│
-├── providers/
-│   ├── __init__.py
-│   ├── dense_provider.py       # Dense embedding provider
-│   └── sparse_provider.py      # Sparse embedding provider (optional)
+│   ├── base.py                 # BaseEmbeddingClient (ABC)
+│   ├── qwen_client.py          # QwenEmbeddingClient (httpx + tenacity)
+│   └── mock_client.py          # MockEmbeddingClient (deterministic)
 │
 ├── services/
 │   ├── __init__.py
-│   └── embedding_service.py    # High-level facade service
+│   └── embedding_service.py    # EmbeddingService facade
+│
+├── views/
+│   ├── __init__.py
+│   └── embedding_views.py      # Health + embed endpoints (minimal API)
 │
 └── tests/
     ├── __init__.py
-    ├── conftest.py             # Pytest fixtures
-    ├── test_qwen_client.py     # Client tests
-    ├── test_embedding_service.py
-    ├── test_integration.py     # Integration tests
-    └── test_utils.py           # Test utilities
+    ├── conftest.py             # Pytest fixtures (matching MilvusController pattern)
+    ├── test_qwen_client.py     # Client unit tests
+    ├── test_mock_client.py     # Mock client tests
+    ├── test_embedding_service.py # Service tests
+    └── test_api_views.py       # API integration tests
 ```
 
 ---
 
-## Interface Design
-
-### DTOs (Data Transfer Objects)
+## Constants Design (Aligned with MilvusController Pattern)
 
 ```python
-from dataclasses import dataclass
-from typing import Optional
-import numpy as np
-from numpy.typing import NDArray
+# constants.py
+from __future__ import annotations
+
+from enum import Enum
+
+
+# =============================================================================
+# Embedding Models
+# =============================================================================
+
+
+class EmbeddingModel(str, Enum):
+    """Supported embedding models."""
+
+    QWEN_V1 = "text-embedding-v1"
+    QWEN_V3 = "text-embedding-v3"
+
+
+class EmbeddingDimension:
+    """Embedding dimensions for each model."""
+
+    QWEN_V1 = 1536
+    QWEN_V3 = 1024
+
+
+# =============================================================================
+# Task Types (Qwen-specific)
+# =============================================================================
+
+
+class TaskType(str, Enum):
+    """Task types for embedding (Qwen API specific)."""
+
+    DOCUMENT = "retrieval.document"  # For documents to be stored
+    QUERY = "retrieval.query"  # For search queries
+
+
+# =============================================================================
+# Provider Types
+# =============================================================================
+
+
+class ProviderType(str, Enum):
+    """Embedding provider types."""
+
+    QWEN = "qwen"
+    MOCK = "mock"
+
+
+# =============================================================================
+# Default Values
+# =============================================================================
+
+DEFAULT_MODEL = EmbeddingModel.QWEN_V1.value
+DEFAULT_DIMENSION = EmbeddingDimension.QWEN_V1
+DEFAULT_BATCH_SIZE = 20
+DEFAULT_TIMEOUT = 60.0
+DEFAULT_MAX_RETRIES = 3
+DEFAULT_BACKOFF_FACTOR = 2.0
+MAX_TOKENS_PER_REQUEST = 8000
+DEFAULT_CACHE_TTL = 3600  # 1 hour
+DEFAULT_CACHE_MAX_SIZE = 1000
+
+# Valid dimensions for validation
+VALID_DIMENSIONS = [EmbeddingDimension.QWEN_V1, EmbeddingDimension.QWEN_V3]
+```
+
+---
+
+## Exception Design (Aligned with MilvusController Pattern)
+
+```python
+# exceptions.py
+from __future__ import annotations
+
+
+# =============================================================================
+# Base Exception
+# =============================================================================
+
+
+class EmbeddingError(Exception):
+    """Base exception for all embedding-related errors."""
+
+    def __init__(self, message: str = "An error occurred in embedding operation") -> None:
+        self.message = message
+        super().__init__(self.message)
+
+
+# =============================================================================
+# Connection Exceptions
+# =============================================================================
+
+
+class EmbeddingConnectionError(EmbeddingError):
+    """Failed to connect to embedding API."""
+
+    def __init__(self, reason: str = "Unknown reason") -> None:
+        self.reason = reason
+        message = f"Failed to connect to embedding API: {reason}"
+        super().__init__(message)
+
+
+class EmbeddingTimeoutError(EmbeddingError):
+    """Embedding request timed out."""
+
+    def __init__(self, timeout: float = 60.0) -> None:
+        self.timeout = timeout
+        message = f"Embedding request timed out after {timeout} seconds"
+        super().__init__(message)
+
+
+# =============================================================================
+# API Exceptions
+# =============================================================================
+
+
+class EmbeddingAPIError(EmbeddingError):
+    """Error from embedding API."""
+
+    def __init__(self, message: str, status_code: int | None = None) -> None:
+        self.status_code = status_code
+        super().__init__(message)
+
+
+class EmbeddingRateLimitError(EmbeddingAPIError):
+    """Rate limit exceeded."""
+
+    def __init__(self, retry_after: float | None = None) -> None:
+        self.retry_after = retry_after
+        message = (
+            f"Rate limit exceeded. Retry after {retry_after}s"
+            if retry_after
+            else "Rate limit exceeded"
+        )
+        super().__init__(message, status_code=429)
+
+
+class EmbeddingInvalidResponseError(EmbeddingAPIError):
+    """Invalid response from embedding API."""
+
+    def __init__(self, reason: str = "Invalid response format") -> None:
+        self.reason = reason
+        message = f"Invalid response from embedding API: {reason}"
+        super().__init__(message)
+
+
+# =============================================================================
+# Input Validation Exceptions
+# =============================================================================
+
+
+class EmbeddingInvalidInputError(EmbeddingError):
+    """Invalid input for embedding."""
+
+    def __init__(self, message: str, input_text: str | None = None) -> None:
+        self.input_text = input_text
+        super().__init__(message)
+
+
+class EmbeddingEmptyInputError(EmbeddingInvalidInputError):
+    """Empty input text for embedding."""
+
+    def __init__(self) -> None:
+        super().__init__("Input text cannot be empty")
+
+
+class EmbeddingInputTooLongError(EmbeddingInvalidInputError):
+    """Input text exceeds maximum token limit."""
+
+    def __init__(self, token_count: int, max_tokens: int) -> None:
+        self.token_count = token_count
+        self.max_tokens = max_tokens
+        message = f"Input text too long: {token_count} tokens (max: {max_tokens})"
+        super().__init__(message)
+
+
+# =============================================================================
+# Dimension Exceptions
+# =============================================================================
+
+
+class EmbeddingDimensionError(EmbeddingError):
+    """Embedding dimension mismatch."""
+
+    def __init__(self, expected: int, actual: int) -> None:
+        self.expected = expected
+        self.actual = actual
+        message = f"Embedding dimension mismatch: expected {expected}, got {actual}"
+        super().__init__(message)
+
+
+# =============================================================================
+# Configuration Exceptions
+# =============================================================================
+
+
+class EmbeddingConfigError(EmbeddingError):
+    """Configuration error for embedding."""
+
+    def __init__(self, config_key: str, reason: str = "") -> None:
+        self.config_key = config_key
+        self.reason = reason
+        reason_info = f": {reason}" if reason else ""
+        message = f"Invalid configuration for '{config_key}'{reason_info}"
+        super().__init__(message)
+
+
+class MissingAPIKeyError(EmbeddingConfigError):
+    """Required API key is missing."""
+
+    def __init__(self) -> None:
+        super().__init__("QWEN_API_KEY", "API key is required for Qwen embedding")
+```
+
+---
+
+## DTO Design (Aligned with MilvusController Pattern)
+
+```python
+# dto.py
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Any
+
 
 # =============================================================================
 # Request DTOs
 # =============================================================================
 
+
 @dataclass(frozen=True)
 class EmbedTextRequest:
-    """Request to embed a single text."""
+    """Request to embed a single text.
+
+    Attributes:
+        text: Text content to embed.
+        model: Embedding model name.
+        task_type: Task type (document or query).
+    """
+
     text: str
     model: str = "text-embedding-v1"
-    task_type: str = "retrieval.document"  # or "retrieval.query"
+    task_type: str = "retrieval.document"
 
 
 @dataclass(frozen=True)
 class EmbedTextsRequest:
-    """Request to embed multiple texts."""
+    """Request to embed multiple texts.
+
+    Attributes:
+        texts: List of text contents to embed.
+        model: Embedding model name.
+        task_type: Task type (document or query).
+        batch_size: Number of texts per API call.
+    """
+
     texts: list[str]
     model: str = "text-embedding-v1"
     task_type: str = "retrieval.document"
@@ -208,20 +390,34 @@ class EmbedTextsRequest:
 
 @dataclass(frozen=True)
 class EmbedForStorageRequest:
-    """Request to embed document chunks for storage."""
-    chunks: list[dict]  # Each chunk has: text, summary, chunk_id, etc.
-    embed_summary: bool = True
-    embed_text: bool = True
+    """Request to embed document chunks for Milvus storage.
+
+    Attributes:
+        chunks: List of chunk dictionaries with 'text' and 'summary' fields.
+        model: Embedding model name.
+    """
+
+    chunks: list[dict[str, Any]]  # Each chunk: {text, summary, chunk_id, ...}
+    model: str = "text-embedding-v1"
 
 
 # =============================================================================
 # Response DTOs
 # =============================================================================
 
+
 @dataclass(frozen=True)
 class EmbeddingResult:
-    """Result of a single embedding operation."""
-    embedding: NDArray[np.float32]  # Shape: (dimension,)
+    """Result of a single embedding operation.
+
+    Attributes:
+        embedding: Dense vector (shape: dimension,).
+        dimension: Vector dimension.
+        model: Model used for embedding.
+        tokens_used: Number of tokens consumed.
+    """
+
+    embedding: list[float]
     dimension: int
     model: str
     tokens_used: int
@@ -229,50 +425,95 @@ class EmbeddingResult:
 
 @dataclass(frozen=True)
 class BatchEmbeddingResult:
-    """Result of a batch embedding operation."""
-    embeddings: list[NDArray[np.float32]]  # Shape: (count, dimension)
+    """Result of a batch embedding operation.
+
+    Attributes:
+        embeddings: List of dense vectors.
+        dimension: Vector dimension.
+        model: Model used for embedding.
+        total_tokens: Total tokens consumed.
+        success_count: Number of successful embeddings.
+        failed_count: Number of failed embeddings.
+    """
+
+    embeddings: list[list[float]]
     dimension: int
     model: str
     total_tokens: int
     success_count: int
-    failed_count: int
+    failed_count: int = 0
 
 
 @dataclass(frozen=True)
 class StorageEmbeddingResult:
-    """Result of embedding document chunks for storage."""
-    chunks: list[dict]  # Each chunk now includes: summary_dense, text_dense
+    """Result of embedding document chunks for storage.
+
+    Attributes:
+        chunks: List of chunks with added 'summary_dense' and 'text_dense' fields.
+        total_tokens: Total tokens consumed.
+        success_count: Number of successfully embedded chunks.
+        failed_count: Number of failed chunks.
+    """
+
+    chunks: list[dict[str, Any]]
     total_tokens: int
     success_count: int
-    failed_count: int
+    failed_count: int = 0
 ```
 
-### EmbeddingService Interface
+---
+
+## Client Interface Design
 
 ```python
+# clients/base.py
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
+from typing import Any
 
-class BaseEmbeddingService(ABC):
-    """Abstract base class for embedding services."""
+from apps.embedding_engine.dto import BatchEmbeddingResult, EmbeddingResult
+
+
+class BaseEmbeddingClient(ABC):
+    """Abstract base class for embedding clients."""
 
     @abstractmethod
-    def embed_text(self, text: str, task_type: str = "retrieval.document") -> EmbeddingResult:
-        """Embed a single text."""
+    def embed(
+        self,
+        texts: list[str],
+        model: str | None = None,
+        **kwargs: Any,
+    ) -> BatchEmbeddingResult:
+        """Embed a list of texts.
+
+        Args:
+            texts: List of text strings to embed.
+            model: Optional model override.
+            **kwargs: Additional provider-specific parameters.
+
+        Returns:
+            BatchEmbeddingResult with embeddings.
+        """
         ...
 
     @abstractmethod
-    def embed_texts(self, texts: list[str], task_type: str = "retrieval.document") -> BatchEmbeddingResult:
-        """Embed multiple texts in batch."""
-        ...
+    def embed_single(
+        self,
+        text: str,
+        model: str | None = None,
+        **kwargs: Any,
+    ) -> EmbeddingResult:
+        """Embed a single text.
 
-    @abstractmethod
-    def embed_query(self, query: str) -> EmbeddingResult:
-        """Embed a search query (optimized for retrieval)."""
-        ...
+        Args:
+            text: Text string to embed.
+            model: Optional model override.
+            **kwargs: Additional provider-specific parameters.
 
-    @abstractmethod
-    def embed_for_storage(self, request: EmbedForStorageRequest) -> StorageEmbeddingResult:
-        """Embed document chunks for Milvus storage."""
+        Returns:
+            EmbeddingResult with embedding.
+        """
         ...
 
     @property
@@ -281,18 +522,145 @@ class BaseEmbeddingService(ABC):
         """Return the embedding dimension."""
         ...
 
-
-class EmbeddingService(BaseEmbeddingService):
-    """High-level facade service for embedding operations."""
-
-    def __init__(self, config: dict | None = None):
-        """Initialize with optional config override."""
+    @property
+    @abstractmethod
+    def model(self) -> str:
+        """Return the default model name."""
         ...
 
-    # Implements all abstract methods
-    # Additional methods:
+    @abstractmethod
     def health_check(self) -> bool:
         """Check if the embedding service is healthy."""
+        ...
+```
+
+---
+
+## EmbeddingService Interface Design
+
+```python
+# services/embedding_service.py
+from __future__ import annotations
+
+from typing import Any
+
+from apps.embedding_engine.dto import (
+    BatchEmbeddingResult,
+    EmbedForStorageRequest,
+    EmbedTextRequest,
+    EmbedTextsRequest,
+    EmbeddingResult,
+    StorageEmbeddingResult,
+)
+
+
+class EmbeddingService:
+    """High-level facade service for embedding operations.
+
+    This service provides a unified interface for all embedding operations,
+    coordinating between different embedding providers (Qwen, Mock).
+
+    Example:
+        >>> service = EmbeddingService()
+        >>> # Embed single text
+        >>> result = service.embed_text("Hello world")
+        >>> # Embed for Milvus storage
+        >>> result = service.embed_for_storage(chunks)
+    """
+
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
+        """Initialize with optional config override.
+
+        Args:
+            config: Optional configuration override.
+        """
+        ...
+
+    # =========================================================================
+    # Core Embedding Methods
+    # =========================================================================
+
+    def embed_text(
+        self,
+        text: str,
+        task_type: str = "retrieval.document",
+    ) -> EmbeddingResult:
+        """Embed a single text.
+
+        Args:
+            text: Text to embed.
+            task_type: Task type (document or query).
+
+        Returns:
+            EmbeddingResult with embedding vector.
+        """
+        ...
+
+    def embed_texts(
+        self,
+        texts: list[str],
+        task_type: str = "retrieval.document",
+        batch_size: int = 20,
+    ) -> BatchEmbeddingResult:
+        """Embed multiple texts in batch.
+
+        Args:
+            texts: List of texts to embed.
+            task_type: Task type (document or query).
+            batch_size: Number of texts per API call.
+
+        Returns:
+            BatchEmbeddingResult with all embeddings.
+        """
+        ...
+
+    def embed_query(self, query: str) -> EmbeddingResult:
+        """Embed a search query (optimized for retrieval).
+
+        Args:
+            query: Query text.
+
+        Returns:
+            EmbeddingResult with query embedding.
+        """
+        ...
+
+    # =========================================================================
+    # Storage-Oriented Methods
+    # =========================================================================
+
+    def embed_for_storage(
+        self,
+        request: EmbedForStorageRequest,
+    ) -> StorageEmbeddingResult:
+        """Embed document chunks for Milvus storage.
+
+        This method generates both summary_dense and text_dense embeddings
+        for each chunk, matching the Milvus multi-vector schema.
+
+        Args:
+            request: EmbedForStorageRequest with chunks.
+
+        Returns:
+            StorageEmbeddingResult with chunks containing embeddings.
+        """
+        ...
+
+    # =========================================================================
+    # Utility Methods
+    # =========================================================================
+
+    @property
+    def dimension(self) -> int:
+        """Return the embedding dimension."""
+        ...
+
+    def health_check(self) -> dict[str, Any]:
+        """Check embedding service health.
+
+        Returns:
+            Dictionary with health status.
+        """
         ...
 
     def get_supported_models(self) -> list[str]:
@@ -304,7 +672,7 @@ class EmbeddingService(BaseEmbeddingService):
 
 ## Configuration Design
 
-### Settings (base.py)
+### Settings (base.py) - Add after QWEN_CONFIG
 
 ```python
 # =============================================================================
@@ -316,45 +684,28 @@ USE_MOCK_EMBEDDING = os.environ.get("USE_MOCK_EMBEDDING", "false").lower() == "t
 EMBEDDING_CONFIG = {
     # Provider settings
     "use_mock": USE_MOCK_EMBEDDING,
-
-    # Qwen API settings
+    # Qwen API settings (reuse from QWEN_CONFIG)
     "api_key": QWEN_API_KEY,
     "base_url": QWEN_BASE_URL,
     "model": QWEN_EMBEDDING_MODEL,
-
-    # Dense embedding settings
-    "dense": {
-        "provider": "qwen",
-        "model": "text-embedding-v1",
-        "dimension": 1536,
-        "max_batch_size": 20,
-        "max_tokens_per_request": 8000,
-    },
-
-    # Sparse embedding settings (BM25)
-    "sparse": {
-        "provider": "milvus",  # "milvus" (built-in) or "self" (managed)
-        "k1": 1.5,
-        "b": 0.75,
-        "vocab_path": None,  # Only needed if provider == "self"
-    },
-
+    # Embedding settings
+    "dimension": QWEN_CONFIG["embedding_dimension"],  # 1536
+    "max_batch_size": 20,
+    "max_tokens_per_request": 8000,
     # Retry settings
     "retry": {
         "max_attempts": 3,
         "backoff_factor": 2.0,
         "max_backoff": 60.0,
     },
-
     # Timeout settings
     "timeout": {
         "connect": 10.0,
         "read": 60.0,
     },
-
-    # Cache settings
+    # Cache settings (optional)
     "cache": {
-        "enabled": True,
+        "enabled": False,  # Disable by default, enable in production
         "ttl": 3600,  # 1 hour
         "max_size": 1000,
     },
@@ -365,326 +716,12 @@ EMBEDDING_CONFIG = {
 
 ```bash
 # Embedding Configuration
-USE_MOCK_EMBEDDING=false
+USE_MOCK_EMBEDDING=false  # Set to true for development without API
 
 # Qwen API (already exists, reused for embedding)
 QWEN_API_KEY=your-api-key-here
 QWEN_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
 QWEN_EMBEDDING_MODEL=text-embedding-v1
-
-# Sparse Embedding (BM25)
-BM25_PROVIDER=milvus
-BM25_K1=1.5
-BM25_B=0.75
-```
-
----
-
-## Constants Design
-
-```python
-from enum import Enum
-
-# =============================================================================
-# Embedding Models
-# =============================================================================
-
-class EmbeddingModel:
-    """Supported embedding models."""
-    QWEN_V1 = "text-embedding-v1"
-    QWEN_V3 = "text-embedding-v3"
-
-
-class EmbeddingDimension:
-    """Embedding dimensions for each model."""
-    QWEN_V1 = 1536
-    QWEN_V3 = 1024
-
-
-# =============================================================================
-# Task Types
-# =============================================================================
-
-class TaskType:
-    """Task types for embedding (Qwen specific)."""
-    DOCUMENT = "retrieval.document"  # For documents to be stored
-    QUERY = "retrieval.query"        # For search queries
-
-
-# =============================================================================
-# Provider Types
-# =============================================================================
-
-class DenseProvider:
-    """Dense embedding providers."""
-    QWEN = "qwen"
-    OPENAI = "openai"
-    MOCK = "mock"
-
-
-class SparseProvider:
-    """Sparse embedding providers."""
-    MILVUS = "milvus"  # Use Milvus built-in BM25
-    SELF = "self"      # Self-managed vocabulary
-
-
-# =============================================================================
-# Default Values
-# =============================================================================
-
-DEFAULT_BATCH_SIZE = 20
-DEFAULT_TIMEOUT = 60.0
-DEFAULT_MAX_RETRIES = 3
-DEFAULT_BACKOFF_FACTOR = 2.0
-MAX_TOKENS_PER_REQUEST = 8000
-```
-
----
-
-## Exception Design
-
-```python
-class EmbeddingError(Exception):
-    """Base exception for embedding operations."""
-    pass
-
-
-class EmbeddingAPIError(EmbeddingError):
-    """Error from embedding API."""
-    def __init__(self, message: str, status_code: int | None = None):
-        self.status_code = status_code
-        super().__init__(message)
-
-
-class EmbeddingRateLimitError(EmbeddingAPIError):
-    """Rate limit exceeded."""
-    def __init__(self, retry_after: float | None = None):
-        self.retry_after = retry_after
-        super().__init__(
-            f"Rate limit exceeded. Retry after {retry_after}s" if retry_after else "Rate limit exceeded",
-            status_code=429
-        )
-
-
-class EmbeddingTimeoutError(EmbeddingError):
-    """Embedding request timed out."""
-    pass
-
-
-class EmbeddingConnectionError(EmbeddingError):
-    """Failed to connect to embedding API."""
-    pass
-
-
-class EmbeddingInvalidInputError(EmbeddingError):
-    """Invalid input for embedding."""
-    def __init__(self, message: str, input_text: str | None = None):
-        self.input_text = input_text
-        super().__init__(message)
-
-
-class EmbeddingDimensionMismatchError(EmbeddingError):
-    """Embedding dimension mismatch."""
-    def __init__(self, expected: int, actual: int):
-        self.expected = expected
-        self.actual = actual
-        super().__init__(
-            f"Embedding dimension mismatch: expected {expected}, got {actual}"
-        )
-
-
-class EmbeddingConfigError(EmbeddingError):
-    """Configuration error for embedding."""
-    pass
-```
-
----
-
-## Qwen API Client Implementation
-
-### API Reference
-
-Qwen embedding API is OpenAI-compatible:
-
-```bash
-# Request
-curl -X POST https://dashscope.aliyuncs.com/compatible-mode/v1/embeddings \
-  -H "Authorization: Bearer $QWEN_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "text-embedding-v1",
-    "input": "Hello world",
-    "dimensions": 1536
-  }'
-
-# Response
-{
-  "object": "list",
-  "data": [
-    {
-      "object": "embedding",
-      "index": 0,
-      "embedding": [0.1, 0.2, ...]
-    }
-  ],
-  "model": "text-embedding-v1",
-  "usage": {
-    "prompt_tokens": 2,
-    "total_tokens": 2
-  }
-}
-```
-
-### Client Implementation
-
-```python
-import logging
-from typing import Any
-import httpx
-from tenacity import retry, stop_after_attempt, wait_exponential
-
-from apps.embedding_engine.constants import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
-from apps.embedding_engine.exceptions import (
-    EmbeddingAPIError,
-    EmbeddingRateLimitError,
-    EmbeddingTimeoutError,
-    EmbeddingConnectionError,
-)
-
-logger = logging.getLogger(__name__)
-
-
-class QwenEmbeddingClient:
-    """Client for Qwen embedding API (OpenAI-compatible)."""
-
-    def __init__(
-        self,
-        api_key: str,
-        base_url: str,
-        model: str = "text-embedding-v1",
-        timeout: float = DEFAULT_TIMEOUT,
-        max_retries: int = DEFAULT_MAX_RETRIES,
-    ):
-        self.api_key = api_key
-        self.base_url = base_url.rstrip("/")
-        self.model = model
-        self.timeout = timeout
-        self.max_retries = max_retries
-
-        self._client = httpx.Client(
-            timeout=httpx.Timeout(timeout),
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-            },
-        )
-
-    @retry(
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1, min=1, max=60),
-        reraise=True,
-    )
-    def embed(
-        self,
-        texts: list[str],
-        dimensions: int | None = None,
-    ) -> dict[str, Any]:
-        """Embed a list of texts."""
-        url = f"{self.base_url}/embeddings"
-
-        payload: dict[str, Any] = {
-            "model": self.model,
-            "input": texts,
-        }
-        if dimensions:
-            payload["dimensions"] = dimensions
-
-        try:
-            response = self._client.post(url, json=payload)
-            response.raise_for_status()
-            return response.json()
-
-        except httpx.TimeoutException as e:
-            logger.error(f"Embedding request timed out: {e}")
-            raise EmbeddingTimeoutError(str(e)) from e
-
-        except httpx.HTTPStatusError as e:
-            if e.response.status_code == 429:
-                retry_after = e.response.headers.get("Retry-After")
-                raise EmbeddingRateLimitError(
-                    retry_after=float(retry_after) if retry_after else None
-                ) from e
-            raise EmbeddingAPIError(
-                f"API error: {e.response.status_code} - {e.response.text}",
-                status_code=e.response.status_code,
-            ) from e
-
-        except httpx.RequestError as e:
-            logger.error(f"Connection error: {e}")
-            raise EmbeddingConnectionError(str(e)) from e
-
-    def close(self) -> None:
-        """Close the HTTP client."""
-        self._client.close()
-
-    def __enter__(self) -> "QwenEmbeddingClient":
-        return self
-
-    def __exit__(self, *args: Any) -> None:
-        self.close()
-```
-
----
-
-## Mock Provider Implementation
-
-For development and testing without API access:
-
-```python
-import hashlib
-import numpy as np
-from numpy.typing import NDArray
-
-from apps.embedding_engine.constants import EmbeddingDimension
-
-
-class MockEmbeddingClient:
-    """Mock embedding client for development/testing."""
-
-    def __init__(self, dimension: int = EmbeddingDimension.QWEN_V1):
-        self.dimension = dimension
-
-    def embed(self, texts: list[str], **kwargs) -> dict:
-        """Generate deterministic mock embeddings."""
-        embeddings = []
-        total_tokens = 0
-
-        for text in texts:
-            # Generate deterministic embedding based on text hash
-            text_hash = hashlib.md5(text.encode()).hexdigest()
-            seed = int(text_hash[:8], 16)
-            rng = np.random.default_rng(seed)
-
-            embedding = rng.standard_normal(self.dimension).astype(np.float32)
-            # Normalize to unit vector
-            embedding = embedding / np.linalg.norm(embedding)
-            embeddings.append(embedding.tolist())
-
-            # Estimate tokens (rough: 4 chars per token)
-            total_tokens += len(text) // 4
-
-        return {
-            "object": "list",
-            "data": [
-                {"object": "embedding", "index": i, "embedding": emb}
-                for i, emb in enumerate(embeddings)
-            ],
-            "model": "mock-embedding",
-            "usage": {
-                "prompt_tokens": total_tokens,
-                "total_tokens": total_tokens,
-            },
-        }
 ```
 
 ---
@@ -694,19 +731,16 @@ class MockEmbeddingClient:
 ### documents_parser Integration
 
 ```python
-# In documents_parser, after chunking
+# In documents_parser, after chunking:
 from apps.embedding_engine.services import EmbeddingService
 from apps.embedding_engine.dto import EmbedForStorageRequest
 
 embedding_service = EmbeddingService()
 
+
 def process_document_chunks(document_id: str, chunks: list[dict]) -> list[dict]:
     """Process and embed document chunks."""
-    request = EmbedForStorageRequest(
-        chunks=chunks,
-        embed_summary=True,
-        embed_text=True,
-    )
+    request = EmbedForStorageRequest(chunks=chunks)
     result = embedding_service.embed_for_storage(request)
 
     # result.chunks now contains summary_dense and text_dense
@@ -716,49 +750,122 @@ def process_document_chunks(document_id: str, chunks: list[dict]) -> list[dict]:
 ### milvus_database_controller Integration
 
 ```python
-# In milvus_database_controller, when inserting vectors
+# In milvus_database_controller, for hybrid search:
 from apps.embedding_engine.services import EmbeddingService
 
 embedding_service = EmbeddingService()
 
-def prepare_vectors_for_insertion(chunks: list[dict]) -> list[dict]:
-    """Prepare chunks with embeddings for Milvus insertion."""
-    # Chunks should already have embeddings from documents_parser
-    # This is just for query-time embedding
-    return chunks
 
-def embed_query(query: str) -> list[float]:
-    """Embed a search query."""
+def prepare_query_vectors(query: str) -> dict[str, list[float]]:
+    """Prepare query vectors for hybrid search."""
     result = embedding_service.embed_query(query)
-    return result.embedding.tolist()
+
+    # For hybrid search, use same embedding for both fields
+    return {
+        "summary_dense": result.embedding,
+        "text_dense": result.embedding,
+    }
 ```
 
 ### rag_processing Integration
 
 ```python
-# In rag_processing, for hybrid search
+# In rag_processing, for query embedding:
 from apps.embedding_engine.services import EmbeddingService
-from apps.embedding_engine.dto import EmbedTextRequest
 
 embedding_service = EmbeddingService()
 
-def get_query_embeddings(query: str) -> dict[str, list[float]]:
-    """Get embeddings for hybrid search query."""
-    # Embed for summary search
-    summary_result = embedding_service.embed_text(
-        query, task_type="retrieval.query"
-    )
 
-    # Embed for text search (same query, same embedding)
-    text_result = embedding_service.embed_text(
-        query, task_type="retrieval.query"
-    )
-
-    return {
-        "summary_dense": summary_result.embedding.tolist(),
-        "text_dense": text_result.embedding.tolist(),
-    }
+def embed_search_query(query: str) -> list[float]:
+    """Embed a search query for vector search."""
+    result = embedding_service.embed_query(query)
+    return result.embedding
 ```
+
+---
+
+## API Endpoints (Minimal)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/embedding/health/` | GET | Health check (authenticated) |
+| `/api/v1/embedding/embed/` | POST | Single text embedding (authenticated, optional) |
+
+> **Note**: Primary usage is via service layer import, not HTTP API. API endpoints are provided for testing and monitoring only.
+
+---
+
+## Submodule Breakdown
+
+### Submodule 8.1: Infrastructure Setup
+
+**Goal**: Establish foundation for embedding operations
+
+| # | Task | Description | Acceptance Criteria | Est. Time |
+|---|------|-------------|---------------------|-----------|
+| 1.1 | Update constants.py | Create constants with Enum + value pattern | All constants defined, matches MilvusController pattern | 1h |
+| 1.2 | Create exceptions.py | Create exception hierarchy | All exception types defined, inherit from EmbeddingError | 1h |
+| 1.3 | Create dto.py | Create frozen dataclass DTOs | All request/response DTOs defined, frozen=True | 1h |
+| 1.4 | Update settings | Add EMBEDDING_CONFIG to base.py | Configuration added, uses QWEN_CONFIG values | 0.5h |
+| 1.5 | Update environment | Add USE_MOCK_EMBEDDING to .env.local | Environment variable documented | 0.5h |
+
+**Dependencies**: None
+
+### Submodule 8.2: Embedding Clients
+
+**Goal**: Implement embedding client interfaces
+
+| # | Task | Description | Acceptance Criteria | Est. Time |
+|---|------|-------------|---------------------|-----------|
+| 2.1 | Create base.py | Abstract BaseEmbeddingClient | Interface defined with all abstract methods | 1h |
+| 2.2 | Create qwen_client.py | QwenEmbeddingClient with httpx | embed() and embed_single() implemented, retry with tenacity | 3h |
+| 2.3 | Implement error handling | Handle API errors, rate limits, timeouts | All error types properly raised | 2h |
+| 2.4 | Create mock_client.py | MockEmbeddingClient | Deterministic embeddings, matches dimension | 1.5h |
+| 2.5 | Create client factory | get_embedding_client() function | Returns correct client based on config | 0.5h |
+
+**Dependencies**: Submodule 8.1
+
+### Submodule 8.3: Embedding Service Layer
+
+**Goal**: Provide unified service interface
+
+| # | Task | Description | Acceptance Criteria | Est. Time |
+|---|------|-------------|---------------------|-----------|
+| 3.1 | Create embedding_service.py | EmbeddingService facade class | All methods implemented | 3h |
+| 3.2 | Implement embed_text | Single text embedding | Validates input, returns EmbeddingResult | 1h |
+| 3.3 | Implement embed_texts | Batch text embedding | Handles batching, returns BatchEmbeddingResult | 1.5h |
+| 3.4 | Implement embed_query | Query embedding helper | Uses task_type="retrieval.query" | 0.5h |
+| 3.5 | Implement embed_for_storage | Chunk embedding for Milvus | Generates summary_dense and text_dense | 2h |
+| 3.6 | Implement health_check | Service health check | Returns status dict | 0.5h |
+
+**Dependencies**: Submodule 8.2
+
+### Submodule 8.4: API Endpoints (Minimal)
+
+**Goal**: Provide minimal HTTP API for testing
+
+| # | Task | Description | Acceptance Criteria | Est. Time |
+|---|------|-------------|---------------------|-----------|
+| 4.1 | Create serializers.py | DRF serializers | HealthCheckSerializer, EmbedSerializer | 1h |
+| 4.2 | Create embedding_views.py | Health + embed endpoints | IsAuthenticated, drf_yasg docs | 1.5h |
+| 4.3 | Create urls.py | URL routing | Endpoints registered | 0.5h |
+
+**Dependencies**: Submodule 8.3
+
+### Submodule 8.5: Testing
+
+**Goal**: Comprehensive test coverage (80%+)
+
+| # | Task | Description | Acceptance Criteria | Est. Time |
+|---|------|-------------|---------------------|-----------|
+| 5.1 | Create conftest.py | Pytest fixtures | Fixtures match MilvusController pattern | 1.5h |
+| 5.2 | Write test_mock_client.py | Mock client tests | 100% coverage of MockEmbeddingClient | 1h |
+| 5.3 | Write test_qwen_client.py | Qwen client tests with mocks | All methods tested, error scenarios covered | 2h |
+| 5.4 | Write test_embedding_service.py | Service layer tests | All public methods tested | 2h |
+| 5.5 | Write test_api_views.py | API endpoint tests | Auth required, responses correct | 1.5h |
+| 5.6 | Verify coverage | Run pytest --cov | 80%+ coverage achieved | 0.5h |
+
+**Dependencies**: Submodule 8.4
 
 ---
 
@@ -766,17 +873,17 @@ def get_query_embeddings(query: str) -> dict[str, list[float]]:
 
 ### Test Categories
 
-1. **Unit Tests**: Mock API responses, test client and service logic
-2. **Integration Tests**: Real API calls (optional, requires API key)
-3. **Error Scenario Tests**: Rate limits, timeouts, invalid inputs
+| Category | Marker | Description |
+|----------|--------|-------------|
+| Unit Tests | `@pytest.mark.unit` | Mock API responses, test logic |
+| Integration Tests | `@pytest.mark.integration` | Real API calls (requires API key) |
 
-### Test Fixtures
+### Test Fixtures (Aligned with MilvusController)
 
 ```python
-# conftest.py
+# tests/conftest.py
 import pytest
 from unittest.mock import MagicMock, patch
-import numpy as np
 
 from apps.embedding_engine.clients.qwen_client import QwenEmbeddingClient
 from apps.embedding_engine.clients.mock_client import MockEmbeddingClient
@@ -786,17 +893,20 @@ from apps.embedding_engine.services.embedding_service import EmbeddingService
 @pytest.fixture
 def mock_embedding_response():
     """Mock API response for embedding."""
+    import random
+
     return {
         "object": "list",
         "data": [
             {
                 "object": "embedding",
-                "index": 0,
-                "embedding": np.random.rand(1536).tolist(),
+                "index": i,
+                "embedding": [random.random() for _ in range(1536)],
             }
+            for i in range(3)
         ],
         "model": "text-embedding-v1",
-        "usage": {"prompt_tokens": 10, "total_tokens": 10},
+        "usage": {"prompt_tokens": 30, "total_tokens": 30},
     }
 
 
@@ -805,6 +915,8 @@ def mock_qwen_client(mock_embedding_response):
     """Mock Qwen client for testing."""
     client = MagicMock(spec=QwenEmbeddingClient)
     client.embed.return_value = mock_embedding_response
+    client.dimension = 1536
+    client.model = "text-embedding-v1"
     return client
 
 
@@ -834,69 +946,7 @@ def sample_texts():
     ]
 ```
 
-### Test Examples
-
-```python
-# test_embedding_service.py
-import pytest
-import numpy as np
-
-from apps.embedding_engine.services.embedding_service import EmbeddingService
-from apps.embedding_engine.dto import EmbedTextsRequest, EmbedForStorageRequest
-
-
-class TestEmbeddingService:
-    """Tests for EmbeddingService."""
-
-    def test_embed_single_text(self, embedding_service_with_mock):
-        """Test embedding a single text."""
-        result = embedding_service_with_mock.embed_text(
-            "Hello world", task_type="retrieval.document"
-        )
-
-        assert result.dimension == 1536
-        assert result.embedding.shape == (1536,)
-        assert result.model == "mock-embedding"
-
-    def test_embed_batch_texts(self, embedding_service_with_mock, sample_texts):
-        """Test batch embedding."""
-        result = embedding_service_with_mock.embed_texts(sample_texts)
-
-        assert result.dimension == 1536
-        assert len(result.embeddings) == len(sample_texts)
-        assert result.success_count == len(sample_texts)
-        assert result.failed_count == 0
-
-    def test_embed_query(self, embedding_service_with_mock):
-        """Test query embedding."""
-        result = embedding_service_with_mock.embed_query("What is machine learning?")
-
-        assert result.dimension == 1536
-        assert result.embedding.shape == (1536,)
-
-    def test_embed_for_storage(self, embedding_service_with_mock):
-        """Test embedding chunks for storage."""
-        chunks = [
-            {"text": "Document text 1", "summary": "Summary 1", "chunk_id": 0},
-            {"text": "Document text 2", "summary": "Summary 2", "chunk_id": 1},
-        ]
-
-        request = EmbedForStorageRequest(
-            chunks=chunks,
-            embed_summary=True,
-            embed_text=True,
-        )
-        result = embedding_service_with_mock.embed_for_storage(request)
-
-        assert len(result.chunks) == 2
-        assert "summary_dense" in result.chunks[0]
-        assert "text_dense" in result.chunks[0]
-        assert len(result.chunks[0]["summary_dense"]) == 1536
-```
-
----
-
-## Test Commands
+### Test Commands
 
 ```bash
 # Run all embedding engine tests
@@ -909,7 +959,10 @@ pytest apps/embedding_engine/tests/ --cov=apps/embedding_engine --cov-report=ter
 pytest apps/embedding_engine/tests/ -v -m "not integration"
 
 # Run integration tests (requires API key)
-pytest apps/embedding_engine/tests/test_integration.py -v -m integration
+pytest apps/embedding_engine/tests/ -v -m integration
+
+# Run with Django settings
+DJANGO_SETTINGS_MODULE=config.settings.local pytest apps/embedding_engine/tests/ -v
 ```
 
 ---
@@ -917,45 +970,47 @@ pytest apps/embedding_engine/tests/test_integration.py -v -m integration
 ## Dependencies
 
 ```toml
-# pyproject.toml additions
+# pyproject.toml - Already present or add:
 [tool.poetry.dependencies]
-httpx = "^0.27"          # HTTP client for API calls
-tenacity = "^8.2"        # Retry logic
-numpy = "^1.26"          # Vector operations
+httpx = "^0.27"          # HTTP client for API calls (may already exist)
+tenacity = "^8.2"        # Retry logic (may already exist)
+numpy = "^1.26"          # Vector operations (may already exist)
 
-[tool.poetry.group.dev.dependencies]
-# No additional dev dependencies needed
+# No additional dependencies needed if above already present
 ```
 
 ---
 
 ## Acceptance Criteria
 
-- [ ] QwenAPIClient with retry and error handling
-- [ ] MockEmbeddingClient for development/testing
-- [ ] EmbeddingService with clean API
-- [ ] Single text embedding support
-- [ ] Batch text embedding support
-- [ ] Query embedding for search
-- [ ] Document embedding for storage
-- [ ] Rate limit handling
-- [ ] Timeout handling
-- [ ] Deterministic mock embeddings
+- [ ] QwenEmbeddingClient with retry and error handling
+- [ ] MockEmbeddingClient for development/testing (deterministic)
+- [ ] EmbeddingService with clean API matching MilvusService pattern
+- [ ] Single text embedding support (embed_text, embed_query)
+- [ ] Batch text embedding support (embed_texts)
+- [ ] Storage embedding support (embed_for_storage with summary_dense, text_dense)
+- [ ] Rate limit handling with tenacity retry
+- [ ] Timeout handling with httpx
+- [ ] All constants use Enum pattern
+- [ ] All exceptions inherit from EmbeddingError
+- [ ] All DTOs are frozen dataclasses
+- [ ] API endpoints use IsAuthenticated permission
+- [ ] API documented with drf_yasg
 - [ ] Test coverage >= 80%
-- [ ] Integration with documents_parser
-- [ ] Integration with milvus_database_controller
-- [ ] Integration with rag_processing
+- [ ] conftest.py matches MilvusController pattern
 
 ---
 
 ## Risks & Considerations
 
-1. **API Rate Limits**: Qwen API has rate limits; implement proper retry with backoff
-2. **Token Limits**: Max tokens per request (8000); chunk large texts accordingly
-3. **Cost Management**: Each API call costs; consider caching for repeated queries
-4. **Latency**: API calls add latency; batch processing for efficiency
-5. **Mock Mode**: Ensure mock embeddings are deterministic for reproducible tests
-6. **Dimension Consistency**: Always use 1536 dimensions to match Milvus schema
+| Risk | Mitigation |
+|------|------------|
+| API Rate Limits | Implement retry with exponential backoff (tenacity) |
+| Token Limits | Validate input length, chunk large texts |
+| Cost Management | Consider caching for repeated queries (optional) |
+| Latency | Batch processing for efficiency |
+| Mock Mode | Deterministic embeddings for reproducible tests |
+| Dimension Consistency | Validate 1536 dimensions to match Milvus schema |
 
 ---
 
@@ -963,11 +1018,51 @@ numpy = "^1.26"          # Vector operations
 
 Recommended execution order:
 
-1. **Submodule 8.1** (Tasks 1.1-1.6): Infrastructure setup
-2. **Submodule 8.2** (Tasks 2.1-2.6): Dense embedding provider
-3. **Submodule 8.3** (Tasks 3.1-3.4): Sparse embedding provider (optional)
-4. **Submodule 8.4** (Tasks 4.1-4.6): Service layer
-5. **Submodule 8.5** (Tasks 5.1-5.6): Testing
+```
+Phase 8.1 (Infrastructure)
+    │
+    ├── 1.1 constants.py
+    ├── 1.2 exceptions.py
+    ├── 1.3 dto.py
+    ├── 1.4 Update settings
+    └── 1.5 Update environment
+    │
+    ▼
+Phase 8.2 (Clients)
+    │
+    ├── 2.1 base.py (interface)
+    ├── 2.2 qwen_client.py
+    ├── 2.3 error handling
+    ├── 2.4 mock_client.py
+    └── 2.5 client factory
+    │
+    ▼
+Phase 8.3 (Service)
+    │
+    ├── 3.1 embedding_service.py (skeleton)
+    ├── 3.2 embed_text
+    ├── 3.3 embed_texts
+    ├── 3.4 embed_query
+    ├── 3.5 embed_for_storage
+    └── 3.6 health_check
+    │
+    ▼
+Phase 8.4 (API)
+    │
+    ├── 4.1 serializers.py
+    ├── 4.2 embedding_views.py
+    └── 4.3 urls.py
+    │
+    ▼
+Phase 8.5 (Testing)
+    │
+    ├── 5.1 conftest.py
+    ├── 5.2 test_mock_client.py
+    ├── 5.3 test_qwen_client.py
+    ├── 5.4 test_embedding_service.py
+    ├── 5.5 test_api_views.py
+    └── 5.6 Verify coverage
+```
 
 ---
 
@@ -975,33 +1070,51 @@ Recommended execution order:
 
 ### New Files
 
-| File | Purpose |
-|------|---------|
-| `apps/embedding_engine/constants.py` | Model names, dimensions, defaults |
-| `apps/embedding_engine/exceptions.py` | Custom exceptions |
-| `apps/embedding_engine/dto.py` | Data transfer objects |
-| `apps/embedding_engine/clients/__init__.py` | Clients module init |
-| `apps/embedding_engine/clients/base.py` | Base client interface |
-| `apps/embedding_engine/clients/qwen_client.py` | Qwen API client |
-| `apps/embedding_engine/clients/mock_client.py` | Mock client |
-| `apps/embedding_engine/providers/__init__.py` | Providers module init |
-| `apps/embedding_engine/providers/dense_provider.py` | Dense embedding provider |
-| `apps/embedding_engine/providers/sparse_provider.py` | Sparse embedding provider |
-| `apps/embedding_engine/services/__init__.py` | Services module init |
-| `apps/embedding_engine/services/embedding_service.py` | Facade service |
-| `apps/embedding_engine/tests/__init__.py` | Tests module init |
-| `apps/embedding_engine/tests/conftest.py` | Test fixtures |
-| `apps/embedding_engine/tests/test_*.py` | Test files |
+| File | Purpose | Lines (est.) |
+|------|---------|--------------|
+| `apps/embedding_engine/constants.py` | Model names, dimensions, defaults | 80 |
+| `apps/embedding_engine/exceptions.py` | Custom exceptions | 100 |
+| `apps/embedding_engine/dto.py` | Data transfer objects | 120 |
+| `apps/embedding_engine/serializers.py` | DRF serializers | 60 |
+| `apps/embedding_engine/urls.py` | URL routing | 20 |
+| `apps/embedding_engine/clients/__init__.py` | Clients module init | 15 |
+| `apps/embedding_engine/clients/base.py` | Base client interface | 50 |
+| `apps/embedding_engine/clients/qwen_client.py` | Qwen API client | 150 |
+| `apps/embedding_engine/clients/mock_client.py` | Mock client | 80 |
+| `apps/embedding_engine/services/__init__.py` | Services module init | 10 |
+| `apps/embedding_engine/services/embedding_service.py` | Facade service | 200 |
+| `apps/embedding_engine/views/__init__.py` | Views module init | 10 |
+| `apps/embedding_engine/views/embedding_views.py` | API endpoints | 80 |
+| `apps/embedding_engine/tests/__init__.py` | Tests module init | 5 |
+| `apps/embedding_engine/tests/conftest.py` | Test fixtures | 100 |
+| `apps/embedding_engine/tests/test_mock_client.py` | Mock client tests | 80 |
+| `apps/embedding_engine/tests/test_qwen_client.py` | Qwen client tests | 150 |
+| `apps/embedding_engine/tests/test_embedding_service.py` | Service tests | 200 |
+| `apps/embedding_engine/tests/test_api_views.py` | API tests | 100 |
 
 ### Modified Files
 
 | File | Changes |
 |------|---------|
-| `pyproject.toml` | Add httpx, tenacity, numpy dependencies |
 | `config/settings/base.py` | Add EMBEDDING_CONFIG |
-| `env/.env.local` | Add EMBEDDING_* variables |
+| `env/.env.local` | Add USE_MOCK_EMBEDDING variable |
+| `apps/embedding_engine/__init__.py` | Update with default config |
 
 ---
 
-*Generated: 2026-02-26*
+## Summary
+
+Phase 8 implements the embedding engine module following the established patterns from Phase 6 (Milvus Database Controller):
+
+1. **Architecture Alignment**: Follows the same layer architecture (Client → Service → API)
+2. **Code Style Consistency**: Uses Enum for constants, frozen dataclasses for DTOs, exception hierarchy
+3. **Integration Ready**: Generates embeddings matching Milvus multi-vector schema
+4. **Testing Strategy**: Matches MilvusController test patterns with conftest.py and pytest markers
+
+**Total Estimated Time**: ~25-30 hours
+
+---
+
+*Updated: 2026-02-27*
 *Plan for Phase 8: Embedding Engine*
+*Aligned with Phase 6: Milvus Database Controller patterns*

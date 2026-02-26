@@ -5,12 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="73d6f8f2-f1e0-49df-a8a4-ca3703b1c06f" name="Changes" comment="chore: 更新 IntelliJ 工作区文件">
-      <change beforePath="$PROJECT_DIR$/.codebuddy/agents/task-progress-manager.md" beforeDir="false" afterPath="$PROJECT_DIR$/.codebuddy/agents/task-progress-manager.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.codebuddy/plans/phase6-milvus-database-controller.md" beforeDir="false" afterPath="$PROJECT_DIR$/.codebuddy/plans/phase6-milvus-database-controller.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.codebuddy/plans/phase8-embedding-engine.md" beforeDir="false" afterPath="$PROJECT_DIR$/.codebuddy/plans/phase8-embedding-engine.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/settings/base.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/settings/base.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/architecture.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/architecture.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -65,7 +61,7 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "ai.playground.ignore.import.keys.banner.in.settings": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "milvusController",
+    "git-widget-placeholder": "embbeding__service",
     "junie.onboarding.icon.badge.shown": "true",
     "last_opened_file_path": "/Users/maxrocketman/myproject/melon",
     "node.js.detected.package.eslint": "true",
