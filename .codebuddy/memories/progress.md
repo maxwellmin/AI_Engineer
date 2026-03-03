@@ -191,15 +191,31 @@
 ---
 
 ### 阶段 8: embedding_module
-**状态**: ⏳ 未开始
+**状态**: ✅ 已完成
+**开始日期**: 2026-02-26
+**完成日期**: 2026-02-26
 **目标**: 文本向量化功能，Service 方式提供给其他模块
 
+**详细计划**: 见 `.codebuddy/plans/phase8-embedding-engine.md`
+
 **验收标准**:
-- [ ] Embedding Service 封装完成
-- [ ] 支持阿里云通义千问 Embedding API
-- [ ] 批量向量化功能
-- [ ] 缓存机制 (可选)
-- [ ] 错误处理和重试机制
+- [x] Embedding Service 封装完成
+- [x] 支持阿里云通义千问 Embedding API (text-embedding-v1)
+- [x] 批量向量化功能
+- [x] 错误处理和重试机制
+- [x] 文本长度验证（本地验证，max 8000 tokens）
+- [x] API 测试通过 (22 tests, 100% pass rate)
+
+**完成的工作**:
+- QwenClient 封装（trust_env=False 解决代理问题）
+- 5 个 API 端点 (health, embed, embed-batch, embed-query, models)
+- 文本长度本地验证（validate_text, validate_texts）
+- 友好的错误消息（包含 token 估算）
+- 完整 API 手动测试（5 批次，22 测试用例）
+
+**Bug Fixes**:
+- qwen_client.py: 添加 trust_env=False 禁用系统代理
+- serializers.py: 添加文本长度验证，避免无效请求到达外部 API
 
 **依赖**: 阶段 2 完成 ✅
 
@@ -275,6 +291,7 @@
 
 | 日期 | 阶段 | 更新内容 |
 |------|------|---------|
+| 2026-02-26 | 阶段 8 | 完成 embedding_engine：QwenClient封装、5个API端点、文本长度验证、API测试100%通过 (22/22 tests) |
 | 2026-02-26 | 阶段 6 | 完成 milvus_database_controller：7个子模块、MilvusClient单例、4个Manager、MilvusService门面、15+ REST API、混合搜索、159 tests (81.91% coverage) |
 | 2026-02-25 | 阶段 4 | 完成 documents_parser：文档上传/列表/详情/删除 API、去重功能、S3 集成、手动测试通过 |
 | 2026-02-25 | 测试 | 完成 Phases 3-5 手动测试，测试文档：apps/documents_parser/docs/manual_test.md |

@@ -216,6 +216,42 @@ QWEN_CONFIG = {
 }
 
 # =============================================================================
+# Embedding Engine Configuration
+# =============================================================================
+
+USE_MOCK_EMBEDDING = os.environ.get("USE_MOCK_EMBEDDING", "false").lower() == "true"
+
+EMBEDDING_CONFIG = {
+    # Provider settings
+    "use_mock": USE_MOCK_EMBEDDING,
+    # Qwen API settings (reuse from QWEN_CONFIG)
+    "api_key": QWEN_API_KEY,
+    "base_url": QWEN_BASE_URL,
+    "model": QWEN_EMBEDDING_MODEL,
+    # Embedding settings
+    "dimension": QWEN_CONFIG["embedding_dimension"],  # 1536
+    "max_batch_size": 20,
+    "max_tokens_per_request": 8000,
+    # Retry settings
+    "retry": {
+        "max_attempts": 3,
+        "backoff_factor": 2.0,
+        "max_backoff": 60.0,
+    },
+    # Timeout settings
+    "timeout": {
+        "connect": 10.0,
+        "read": 60.0,
+    },
+    # Cache settings (optional)
+    "cache": {
+        "enabled": False,  # Disable by default, enable in production
+        "ttl": 3600,  # 1 hour
+        "max_size": 1000,
+    },
+}
+
+# =============================================================================
 # Password Validation
 # =============================================================================
 

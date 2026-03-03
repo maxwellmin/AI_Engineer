@@ -127,6 +127,7 @@ You should:
 3. Ask any clarifying questions about MinIO/S3 integration preferences
 4. Generate `.codebuddy/plans/phase5-object-storage-controller.md`，严格放在项目plans路径下
 5. Present the plan and ask for feedback
+6. 在拆解计划的时候记得最后要在测试后入.codebuddy/plans/phase8-embedding-engine.md的8.5后面增加一个步骤，这个步骤是用来执行手动测试的，这个时候需要调用manual_test_generator这个agent来生成测试用例,他会在当前模块的doc文档里面生成类似apps/milvus_database_controller/docs/manual_test.md的手动测试文档，然后你把这些步骤放到8.6，以便后面api-test-executor这个agent来执行手动测试.
 
 ## Important Notes
 
