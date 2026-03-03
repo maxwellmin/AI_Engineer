@@ -131,6 +131,11 @@ class VectorDataSerializer(serializers.Serializer):
         allow_empty=False,
         help_text="Text embedding vector",
     )
+    text_sparse = serializers.DictField(
+        child=serializers.FloatField(),
+        required=False,
+        help_text="Sparse vector for BM25 search (index -> value mapping)",
+    )
 
     def validate_summary_dense(self, value: list[float]) -> list[float]:
         """Validate summary_dense vector dimension."""

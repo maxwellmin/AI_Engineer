@@ -4,9 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="73d6f8f2-f1e0-49df-a8a4-ca3703b1c06f" name="Changes" comment="chore: 更新 IntelliJ 工作区文件">
-      <change beforePath="$PROJECT_DIR$/.codebuddy/plans/phase8-embedding-engine.md" beforeDir="false" afterPath="$PROJECT_DIR$/.codebuddy/plans/phase8-embedding-engine.md" afterDir="false" />
+    <list default="true" id="73d6f8f2-f1e0-49df-a8a4-ca3703b1c06f" name="Changes" comment="docs: 更新嵌入引擎设计文档以匹配Milvus控制器模式">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/milvus_database_controller/docs/manual_test.md" beforeDir="false" afterPath="$PROJECT_DIR$/apps/milvus_database_controller/docs/manual_test.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/milvus_database_controller/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/milvus_database_controller/serializers.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -352,7 +353,15 @@
       <option name="project" value="LOCAL" />
       <updated>1772066916832</updated>
     </task>
-    <option name="localTasksCounter" value="30" />
+    <task id="LOCAL-00030" summary="docs: 更新嵌入引擎设计文档以匹配Milvus控制器模式">
+      <option name="closed" value="true" />
+      <created>1772105344894</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1772105344894</updated>
+    </task>
+    <option name="localTasksCounter" value="31" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -397,7 +406,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="chore(project): 初始化项目基础配置文件&#10;&#10;- 添加 .gitignore 文件用于忽略构建产物和环境文件&#10;- 添加 .idea 项目配置文件包括模块、编译器设置和版本控制配置&#10;- 创建 pyproject.toml 配置文件定义项目依赖和构建系统&#10;- 配置 Poetry 包管理器及开发和生产依赖项&#10;- 设置 Django 项目基础配置及 LangChain 相关组件依赖&#10;- 添加数据库连接、异步处理和测试相关依赖包&#10;- 添加开发环境配置文档和 Docker Compose 配置&#10;- 创建项目架构说明文档和基础配置文件" />
     <MESSAGE value="docs: 更新项目架构文档和配置规范&#10;&#10;- 添加完整的项目架构设计文档，包含系统组件、数据流和API设计&#10;- 新增代码风格规范文档，涵盖Python编码约定和数据库规范&#10;- 添加环境变量配置文档，包含数据库、Redis、API密钥等配置&#10;- 创建BM25算法流程文档，详细说明检索原理和工程实现&#10;- 更新CLAUDE.md文件，整合架构信息和项目目录结构&#10;- 在.gitignore中添加*.env文件忽略规则&#10;- 整理项目目录架构，明确各模块职责和功能说明" />
     <MESSAGE value="chore: 删除过期的项目文档CLAUDE.md" />
     <MESSAGE value="chore: 更新IDE工作区配置文件" />
@@ -422,7 +430,8 @@
     <MESSAGE value="docs: 添加任务进度管理示例模板" />
     <MESSAGE value="docs: 添加开发任务状态更新说明和测试文档存放指南" />
     <MESSAGE value="chore: 更新 IntelliJ 工作区文件" />
-    <option name="LAST_COMMIT_MESSAGE" value="chore: 更新 IntelliJ 工作区文件" />
+    <MESSAGE value="docs: 更新嵌入引擎设计文档以匹配Milvus控制器模式" />
+    <option name="LAST_COMMIT_MESSAGE" value="docs: 更新嵌入引擎设计文档以匹配Milvus控制器模式" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/melon$runserver.coverage" NAME="runserver Coverage Results" MODIFIED="1771896633424" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
