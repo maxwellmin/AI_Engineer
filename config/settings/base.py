@@ -189,11 +189,24 @@ MILVUS_CONFIG = {
 NEO4J_URI = os.environ.get("NEO4J_URI", "bolt://localhost:7687")
 NEO4J_USER = os.environ.get("NEO4J_USER", "neo4j")
 NEO4J_PASSWORD = os.environ.get("NEO4J_PASSWORD", "")
+NEO4J_DATABASE = os.environ.get("NEO4J_DATABASE", "neo4j")
 
 NEO4J_CONFIG = {
+    # Connection settings
     "uri": NEO4J_URI,
     "user": NEO4J_USER,
     "password": NEO4J_PASSWORD,
+    "database": NEO4J_DATABASE,
+    # Connection pool settings
+    "max_connection_pool_size": int(
+        os.environ.get("NEO4J_MAX_CONNECTION_POOL_SIZE", "50")
+    ),
+    "connection_timeout": int(os.environ.get("NEO4J_CONNECTION_TIMEOUT", "30")),  # seconds
+    "max_transaction_retry_time": int(
+        os.environ.get("NEO4J_MAX_TRANSACTION_RETRY_TIME", "30")
+    ),  # seconds
+    # Query settings
+    "default_query_timeout": int(os.environ.get("NEO4J_QUERY_TIMEOUT", "60")),  # seconds
 }
 
 # =============================================================================

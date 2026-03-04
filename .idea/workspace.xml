@@ -5,10 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="73d6f8f2-f1e0-49df-a8a4-ca3703b1c06f" name="Changes" comment="docs: 更新Milvus数据库控制器手动测试文档和序列化器&#10;&#10;添加测试结果记录和已知问题说明，补充text_sparse字段到向量数据序列化器">
-      <change beforePath="$PROJECT_DIR$/.codebuddy/agents/tech-lead.md" beforeDir="false" afterPath="$PROJECT_DIR$/.codebuddy/agents/tech-lead.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.codebuddy/memories/progress.md" beforeDir="false" afterPath="$PROJECT_DIR$/.codebuddy/memories/progress.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.codebuddy/plans/phase8-embedding-engine.md" beforeDir="false" afterPath="$PROJECT_DIR$/.codebuddy/plans/phase8-embedding-engine.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.codebuddy/CODEBUDDY.md" beforeDir="false" afterPath="$PROJECT_DIR$/.codebuddy/CODEBUDDY.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.codebuddy/agents/api-test-executor.md" beforeDir="false" afterPath="$PROJECT_DIR$/.codebuddy/agents/api-test-executor.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/neo4j_database_controller/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/neo4j_database_controller/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config/settings/base.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/settings/base.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/poetry.lock" beforeDir="false" afterPath="$PROJECT_DIR$/poetry.lock" afterDir="false" />
@@ -67,7 +67,7 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "ai.playground.ignore.import.keys.banner.in.settings": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "embbeding__service",
+    "git-widget-placeholder": "neo4j__controller",
     "junie.onboarding.icon.badge.shown": "true",
     "last_opened_file_path": "/Users/maxrocketman/myproject/melon",
     "node.js.detected.package.eslint": "true",

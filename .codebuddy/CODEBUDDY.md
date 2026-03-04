@@ -7,6 +7,7 @@
 - 注释策略：所有代码注释需要使用英文
 - plan策略： plan模式下生成的用户级别plan文件，按需要同步到项目目录.codebuddy/plans下面，自行寻找合适的文件
 - python调试命令：需要在poetry下面执行，测试命令需要关注django配置，类似DJANGO_SETTINGS_MODULE=config.settings.local poetry run
+- 测试前的检查: 可以使用linux命令看看django server或者8000端口是不是已经启动了，这样就不用每次都重启了。或者你每次都全责kill掉老的文件句柄，然后重启，确认代码加载。
 
 ## 项目介绍
 - 基于RAG技术的文档知识库处理工具
