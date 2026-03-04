@@ -34,6 +34,7 @@ urlpatterns = [
     path("api/v1/milvus/", include("apps.milvus_database_controller.urls")),
     path("api/v1/embedding/", include("apps.embedding_engine.urls")),
     path("api/v1/neo4j/", include("apps.neo4j_database_controller.urls")),
+    path("api/v1/pipeline/", include("apps.document_pipeline_manager.urls")),
 ]
 
 # Debug toolbar URLs (only in debug mode)

@@ -6,7 +6,13 @@
   <component name="ChangeListManager">
     <list default="true" id="73d6f8f2-f1e0-49df-a8a4-ca3703b1c06f" name="Changes" comment="feat: 添加 Neo4j 数据库控制器支持&#10;&#10;集成 Neo4j Python 驱动，新增数据库连接配置、URL 路由和基础应用结构">
       <change beforePath="$PROJECT_DIR$/.codebuddy/memories/progress.md" beforeDir="false" afterPath="$PROJECT_DIR$/.codebuddy/memories/progress.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.codebuddy/plans/phase9-document-pipeline-manager.md" beforeDir="false" afterPath="$PROJECT_DIR$/.codebuddy/plans/phase9-document-pipeline-manager.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/document_pipeline_manager/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/document_pipeline_manager/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/document_pipeline_manager/apps.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/document_pipeline_manager/apps.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/document_pipeline_manager/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/document_pipeline_manager/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/settings/base.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/settings/base.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/urls.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -61,7 +67,7 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "ai.playground.ignore.import.keys.banner.in.settings": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "neo4j__controller",
+    "git-widget-placeholder": "document__pipeline",
     "junie.onboarding.icon.badge.shown": "true",
     "last_opened_file_path": "/Users/maxrocketman/myproject/melon",
     "node.js.detected.package.eslint": "true",

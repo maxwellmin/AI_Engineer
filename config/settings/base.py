@@ -265,6 +265,26 @@ EMBEDDING_CONFIG = {
 }
 
 # =============================================================================
+# Document Pipeline Configuration
+# =============================================================================
+
+PIPELINE_CONFIG = {
+    # Retry settings
+    "max_retries": 3,
+    "retry_backoff_factor": 2.0,
+    "max_retry_backoff": 60.0,  # seconds
+    # Timeout settings
+    "step_timeout_seconds": 300,  # 5 minutes per step
+    "total_timeout_seconds": 1800,  # 30 minutes for entire pipeline
+    # Batch settings
+    "batch_size": 20,  # For embedding batches
+    # Entity extraction settings
+    "enable_entity_extraction": True,
+    "entity_confidence_threshold": 0.7,
+    "max_entities_per_document": 100,
+}
+
+# =============================================================================
 # Password Validation
 # =============================================================================
 
