@@ -14,8 +14,10 @@ from apps.document_pipeline_manager.constants import PipelineStepName, PipelineS
 from apps.document_pipeline_manager.dto import StepResult
 from apps.document_pipeline_manager.exceptions import ExtractionError
 from apps.document_pipeline_manager.runners.base import BaseStepRunner
-from apps.document_pipeline_manager.services.entity_service import EntityService
 from apps.documents_parser.models import Document, DocumentChunk
+
+# Lazy import to avoid circular dependency
+# from apps.document_pipeline_manager.services.entity_service import EntityService
 
 logger = logging.getLogger(__name__)
 
@@ -49,9 +51,10 @@ class ExtractStepRunner(BaseStepRunner):
         self._entity_service: EntityService | None = None
 
     @property
-    def entity_service(self) -> EntityService:
-        """Get or create EntityService instance."""
+    def entity_service(self):
+        """Get or create EntityService instance (lazy import to avoid circular dependency)."""
         if self._entity_service is None:
+            from apps.document_pipeline_manager.services.entity_service import EntityService
             self._entity_service = EntityService()
         return self._entity_service
 

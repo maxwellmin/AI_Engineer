@@ -818,7 +818,7 @@ class NodeManager:
             PropName.STATUS: status,
             **extra_properties,
         }
-        return self.create_node(NodeLabel.DOCUMENT.value, properties)
+        return self.create_node(NodeLabel.DOCUMENT.value, properties, merge=True)
 
     def create_chunk_node(
         self,
@@ -859,7 +859,7 @@ class NodeManager:
             properties[PropName.START_CHAR] = start_char
         if end_char is not None:
             properties[PropName.END_CHAR] = end_char
-        return self.create_node(NodeLabel.CHUNK.value, properties)
+        return self.create_node(NodeLabel.CHUNK.value, properties, merge=True)
 
     def create_entity_node(
         self,

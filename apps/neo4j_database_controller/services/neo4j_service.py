@@ -304,17 +304,14 @@ class Neo4jService:
         Returns:
             NodeCreationResult with created document info.
         """
-        properties = {
-            PropName.ID: document_id,
-            PropName.TITLE: title,
-            PropName.SOURCE: source,
-            PropName.DOC_TYPE: doc_type,
-            PropName.STATUS: status,
-        }
-        if extra_properties:
-            properties.update(extra_properties)
-
-        return self._node_manager.create_document_node(**properties)
+        return self._node_manager.create_document_node(
+            document_id=document_id,
+            title=title,
+            source=source,
+            doc_type=doc_type,
+            status=status,
+            **(extra_properties or {}),
+        )
 
     def get_document(self, document_id: str) -> NodeInfo | None:
         """Get a document by ID.
@@ -384,22 +381,16 @@ class Neo4jService:
             NodeNotFoundError: If document doesn't exist.
         """
         # Create chunk node
-        properties = {
-            PropName.ID: chunk_id,
-            PropName.TEXT: text,
-            PropName.CHUNK_INDEX: chunk_index,
-            PropName.DOCUMENT_ID: document_id,
-        }
-        if page_number is not None:
-            properties[PropName.PAGE_NUMBER] = page_number
-        if start_char is not None:
-            properties[PropName.START_CHAR] = start_char
-        if end_char is not None:
-            properties[PropName.END_CHAR] = end_char
-        if extra_properties:
-            properties.update(extra_properties)
-
-        chunk_result = self._node_manager.create_chunk_node(**properties)
+        chunk_result = self._node_manager.create_chunk_node(
+            chunk_id=chunk_id,
+            text=text,
+            document_id=document_id,
+            chunk_index=chunk_index,
+            page_number=page_number,
+            start_char=start_char,
+            end_char=end_char,
+            **(extra_properties or {}),
+        )
 
         # Create CONTAINS relationship
         rel_result = self._relationship_manager.create_contains_relationship(
@@ -431,6 +422,74 @@ class Neo4jService:
             limit=limit,
         )
 
+    def create_chunk(
+        self,
+        chunk_id: str,
+        document_id: str,
+        content: str,
+        chunk_index: int,
+        char_count: int | None = None,
+        token_count: int | None = None,
+        page_number: int | None = None,
+        content_hash: str | None = None,
+        extra_properties: dict[str, Any] | None = None,
+    ) -> NodeCreationResult:
+        """Create a Chunk node without creating relationship.
+
+        Args:
+            chunk_id: Unique chunk identifier.
+            document_id: Parent document ID.
+            content: Chunk text content.
+            chunk_index: Index of chunk in document.
+            char_count: Character count (optional).
+            token_count: Token count (optional).
+            page_number: Page number (optional).
+            content_hash: Content hash (optional).
+            extra_properties: Additional properties.
+
+        Returns:
+            NodeCreationResult with created chunk info.
+        """
+        properties = {
+            "char_count": char_count,
+            "token_count": token_count,
+            "content_hash": content_hash,
+            **(extra_properties or {}),
+        }
+        # Remove None values
+        properties = {k: v for k, v in properties.items() if v is not None}
+
+        return self._node_manager.create_chunk_node(
+            chunk_id=chunk_id,
+            text=content,
+            document_id=document_id,
+            chunk_index=chunk_index,
+            page_number=page_number,
+            **properties,
+        )
+
+    def link_document_to_chunk(
+        self,
+        document_id: str,
+        chunk_id: str,
+        order: int | None = None,
+    ) -> RelationshipCreationResult:
+        """Create a CONTAINS relationship from Document to Chunk.
+
+        Args:
+            document_id: Document ID.
+            chunk_id: Chunk ID.
+            order: Optional order index.
+
+        Returns:
+            RelationshipCreationResult.
+        """
+        return self._relationship_manager.create_contains_relationship(
+            document_id=document_id,
+            chunk_id=chunk_id,
+            order=order,
+        )
+
     # =========================================================================
     # Entity Operations (High-level)
     # =========================================================================
@@ -457,17 +516,14 @@ class Neo4jService:
         Returns:
             NodeCreationResult.
         """
-        properties = {
-            PropName.ID: entity_id,
-            PropName.NAME: name,
-            PropName.ENTITY_TYPE: entity_type,
-            PropName.DESCRIPTION: description,
-            PropName.CONFIDENCE: confidence,
-        }
-        if extra_properties:
-            properties.update(extra_properties)
-
-        return self._node_manager.create_entity_node(**properties)
+        return self._node_manager.create_entity_node(
+            entity_id=entity_id,
+            name=name,
+            entity_type=entity_type,
+            description=description,
+            confidence=confidence,
+            **(extra_properties or {}),
+        )
 
     def get_entity(self, entity_id: str) -> NodeInfo | None:
         """Get an entity by ID.
@@ -580,16 +636,13 @@ class Neo4jService:
         Returns:
             NodeCreationResult.
         """
-        properties = {
-            PropName.ID: concept_id,
-            PropName.NAME: name,
-            PropName.DESCRIPTION: description,
-            PropName.CATEGORY: category,
-        }
-        if extra_properties:
-            properties.update(extra_properties)
-
-        return self._node_manager.create_concept_node(**properties)
+        return self._node_manager.create_concept_node(
+            concept_id=concept_id,
+            name=name,
+            description=description,
+            category=category,
+            **(extra_properties or {}),
+        )
 
     def get_concept(self, concept_id: str) -> NodeInfo | None:
         """Get a concept by ID.

@@ -33,6 +33,7 @@ class FieldDefinition:
         max_length: Maximum length for VARCHAR fields.
         dim: Dimension for vector fields.
         description: Field description.
+        nullable: Whether the field can be null.
     """
 
     name: str
@@ -42,6 +43,7 @@ class FieldDefinition:
     max_length: int | None = None
     dim: int | None = None
     description: str = ""
+    nullable: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for schema creation."""
@@ -58,6 +60,8 @@ class FieldDefinition:
             result["dim"] = self.dim
         if self.description:
             result["description"] = self.description
+        if self.nullable:
+            result["nullable"] = True
         return result
 
 
@@ -149,12 +153,15 @@ class DocumentCollectionSchema:
                 dim=self.dimension,
                 description="Text embedding vector",
             ),
-            # Sparse vector (BM25)
-            FieldDefinition(
-                name=FieldName.TEXT_SPARSE.value,
-                dtype=DataType.SPARSE_FLOAT_VECTOR,
-                description="BM25 sparse vector",
-            ),
+            # NOTE: text_sparse (BM25 sparse vector) is temporarily removed from schema
+            # Milvus 2.4.x SPARSE_FLOAT_VECTOR does not support nullable=True
+            # Will be re-added when BM25 functionality is implemented
+            # FieldDefinition(
+            #     name=FieldName.TEXT_SPARSE.value,
+            #     dtype=DataType.SPARSE_FLOAT_VECTOR,
+            #     nullable=True,
+            #     description="BM25 sparse vector",
+            # ),
         ]
 
     def get_field_names(self) -> list[str]:

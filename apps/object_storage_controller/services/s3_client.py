@@ -48,11 +48,15 @@ class S3Client:
         """Initialize boto3 S3 client with settings."""
         try:
             # Build client configuration
+            # Disable checksum validation for MinIO compatibility
             config = Config(
                 signature_version="s3v4",
                 retries={
                     "max_attempts": 3,
                     "mode": "standard",
+                },
+                s3={
+                    "payload_signing_enabled": False,
                 },
             )
 
@@ -154,9 +158,12 @@ class S3Client:
             raise S3ConnectionError("S3 client not initialized")
 
         try:
+            # Use get_object with ChecksumMode='DISABLED' to skip checksum validation
+            # This is needed for MinIO compatibility
             response = self._client.get_object(
                 Bucket=self._bucket_name,
                 Key=file_path,
+                ChecksumMode="DISABLED",
             )
             content = response["Body"].read()
             logger.debug(f"Downloaded file '{file_path}' from S3 ({len(content)} bytes)")

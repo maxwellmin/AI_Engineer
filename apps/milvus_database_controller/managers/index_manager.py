@@ -167,12 +167,14 @@ class IndexManager:
         This creates:
         - HNSW index for summary_dense field
         - HNSW index for text_dense field
-        - Sparse index for text_sparse field (BM25)
+
+        Note: Sparse index for text_sparse is disabled until BM25 is implemented.
+        Milvus 2.4.x SPARSE_FLOAT_VECTOR does not support nullable=True.
 
         Args:
             collection_name: Name of the collection.
             dense_index_params: Parameters for dense indexes.
-            sparse_index_params: Parameters for sparse index.
+            sparse_index_params: Parameters for sparse index (unused, kept for API compatibility).
 
         Returns:
             Dictionary mapping index names to creation status.
@@ -193,15 +195,16 @@ class IndexManager:
                 logger.warning(f"Failed to create index '{index_name}': {e}")
                 results[index_name] = False
 
-        # Create sparse index
-        try:
-            results[IndexName.TEXT_SPARSE.value] = self.create_sparse_index(
-                collection_name=collection_name,
-                index_params=sparse_index_params,
-            )
-        except Exception as e:
-            logger.warning(f"Failed to create sparse index: {e}")
-            results[IndexName.TEXT_SPARSE.value] = False
+        # Sparse index disabled until BM25 is implemented
+        # Milvus 2.4.x SPARSE_FLOAT_VECTOR does not support nullable=True
+        # try:
+        #     results[IndexName.TEXT_SPARSE.value] = self.create_sparse_index(
+        #         collection_name=collection_name,
+        #         index_params=sparse_index_params,
+        #     )
+        # except Exception as e:
+        #     logger.warning(f"Failed to create sparse index: {e}")
+        #     results[IndexName.TEXT_SPARSE.value] = False
 
         return results
 

@@ -157,7 +157,7 @@ class GraphStepRunner(BaseStepRunner):
             )
 
             logger.debug(f"Created document node: {document.id}")
-            return {"success": True, "node_id": result.node_id}
+            return {"success": True, "node_id": result.node.id}
 
         except Exception as e:
             logger.error(f"Failed to create document node: {e}")

@@ -209,6 +209,7 @@ __marimo__/
 
 # Milvus development volumes
 apps/mulvesdb/dev_utils/volumes/
+dev_utils/volumes/
 
 # Frontend (Vue.js) project
 frontend/melonmind/node_modules/

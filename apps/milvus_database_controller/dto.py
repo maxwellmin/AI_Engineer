@@ -364,7 +364,11 @@ class VectorRecord:
     text_dense: list[float]
 
     def to_dict(self) -> dict[str, Any]:
-        """Convert to dictionary for Milvus insertion."""
+        """Convert to dictionary for Milvus insertion.
+
+        Note: For nullable SPARSE_FLOAT_VECTOR fields in Milvus, omitting the field
+        is equivalent to null. We do not include text_sparse when BM25 is not used.
+        """
         return {
             "pk": self.pk,
             "text": self.text,
@@ -376,6 +380,8 @@ class VectorRecord:
             "chunk_id": self.chunk_id,
             "summary_dense": self.summary_dense,
             "text_dense": self.text_dense,
+            # text_sparse is omitted for nullable sparse vector field
+            # When BM25 is implemented, add "text_sparse": sparse_vector_dict
         }
 
 

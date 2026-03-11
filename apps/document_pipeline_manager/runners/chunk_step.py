@@ -146,8 +146,8 @@ class ChunkStepRunner(BaseStepRunner):
         """
         Get parsed content for the document.
 
-        This method reads the document content. In a production system,
-        the parsed content should be cached/stored after the parse step.
+        Reads the parsed content stored during the parse step.
+        Falls back to re-parsing if content was not stored.
 
         Args:
             document: Document model instance.
@@ -155,8 +155,15 @@ class ChunkStepRunner(BaseStepRunner):
         Returns:
             Parsed text content.
         """
-        # For now, re-parse to get content
-        # TODO: Store parsed content after parse step to avoid re-parsing
+        # First, try to get stored parsed content
+        if document.parsed_content:
+            logger.debug(f"Using stored parsed content for document {document.id}")
+            return document.parsed_content
+
+        # Fallback: re-parse if content not stored (backward compatibility)
+        logger.warning(
+            f"No stored parsed content for document {document.id}, re-parsing..."
+        )
         from apps.documents_parser.services.parsers.factory import ParserFactory
         from pathlib import Path
 
@@ -164,11 +171,36 @@ class ChunkStepRunner(BaseStepRunner):
             return ""
 
         parser = ParserFactory.get_parser(file_type=document.file_type)
-        file_path = Path(document.file_path)
 
         try:
-            parsed_doc = parser.parse(file_path=file_path)
-            return parsed_doc.content
+            # Handle S3 storage backend
+            storage_backend = document.storage_backend
+            if storage_backend == "s3":
+                # Download from S3 to temp file
+                import tempfile
+                from apps.object_storage_controller.services.factory import get_storage_backend
+
+                backend = get_storage_backend()
+                file_content = backend.read(document.file_path)
+
+                suffix = f".{document.file_type}"
+                with tempfile.NamedTemporaryFile(
+                    mode="wb",
+                    suffix=suffix,
+                    delete=True,
+                ) as temp_file:
+                    temp_file.write(file_content)
+                    temp_file.flush()
+                    parsed_doc = parser.parse(file_path=Path(temp_file.name))
+                    return parsed_doc.content
+            else:
+                # Local storage
+                from django.conf import settings
+                local_path = Path(settings.MEDIA_ROOT) / document.file_path
+                if not local_path.exists():
+                    return ""
+                parsed_doc = parser.parse(file_path=local_path)
+                return parsed_doc.content
         except Exception as e:
             logger.warning(f"Failed to get parsed content: {e}")
             return ""

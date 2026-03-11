@@ -91,13 +91,11 @@ class CollectionManager:
         try:
             logger.info(f"Creating collection '{collection_name}' with dimension {request.dimension}")
 
-            # Create collection with schema using MilvusClient API
-            # Note: Using MilvusClient's high-level API
-            self._client.create_collection(
+            # Use create_collection_with_schema for full schema support
+            self.create_collection_with_schema(
                 collection_name=collection_name,
-                dimension=request.dimension,
-                auto_id=request.auto_id,
-                **{"description": request.description} if request.description else {},
+                schema=schema,
+                description=request.description,
             )
 
             logger.info(f"Successfully created collection '{collection_name}'")
@@ -150,6 +148,8 @@ class CollectionManager:
                     field_kwargs["dim"] = field_def.dim
                 if field_def.description:
                     field_kwargs["description"] = field_def.description
+                if field_def.nullable:
+                    field_kwargs["nullable"] = True
 
                 fields.append(FieldSchema(**field_kwargs))
 

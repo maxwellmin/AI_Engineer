@@ -59,6 +59,9 @@ class Document(models.Model):
     description = models.TextField(blank=True, default="")
     author = models.CharField(max_length=255, blank=True, default="")
 
+    # Parsed content (stored after parse step)
+    parsed_content = models.TextField(blank=True, default="")  # Parsed text content from document
+
     # Storage metadata
     storage_backend = models.CharField(max_length=20, default="s3")  # "s3" or "local"
     storage_metadata = models.JSONField(default=dict, blank=True)  # etag, etc.
