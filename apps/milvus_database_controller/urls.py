@@ -7,6 +7,7 @@ from __future__ import annotations
 from django.urls import path
 
 from apps.milvus_database_controller.views import (
+    BM25SearchView,
     CollectionDetailView,
     CollectionListView,
     CollectionStatsView,
@@ -102,6 +103,11 @@ urlpatterns = [
         "search/vector/",
         VectorSearchView.as_view(),
         name="search-vector",
+    ),
+    path(
+        "search/bm25/",
+        BM25SearchView.as_view(),
+        name="search-bm25",
     ),
     path(
         "search/hybrid/",

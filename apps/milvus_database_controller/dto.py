@@ -136,6 +136,7 @@ class HybridSearchRequest:
         rerank_method: Reranking method ("rrf" or "weighted").
         rrf_k: RRF parameter for reciprocal rank fusion.
         weights: Weights for weighted reranking (sum should be 1.0).
+        include_sparse: Whether to include BM25 sparse search in hybrid search.
     """
 
     collection_name: str
@@ -147,6 +148,7 @@ class HybridSearchRequest:
     rerank_method: str = "rrf"
     rrf_k: int = 60
     weights: list[float] | None = None
+    include_sparse: bool = False
 
 
 @dataclass(frozen=True)

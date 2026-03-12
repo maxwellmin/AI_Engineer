@@ -378,6 +378,33 @@ class TestIndexManager:
             manager.get_index_info("test_collection", "non_existent_index")
 
 
+@pytest.mark.unit
+class TestSparseIndexParams:
+    """Test sparse index parameters for BM25."""
+
+    def test_sparse_index_params_has_bm25_metric(self) -> None:
+        """Test SPARSE_INDEX_PARAMS uses BM25 metric type."""
+        from apps.milvus_database_controller.constants import MetricType
+
+        assert SPARSE_INDEX_PARAMS["metric_type"] == MetricType.BM25.value
+
+    def test_sparse_index_params_has_sparse_wand_index_type(self) -> None:
+        """Test SPARSE_INDEX_PARAMS uses SPARSE_WAND index type."""
+        from apps.milvus_database_controller.constants import IndexType
+
+        assert SPARSE_INDEX_PARAMS["index_type"] == IndexType.SPARSE_WAND.value
+
+    def test_sparse_index_params_has_bm25_k1(self) -> None:
+        """Test SPARSE_INDEX_PARAMS contains bm25_k1 parameter."""
+        assert "bm25_k1" in SPARSE_INDEX_PARAMS["params"]
+        assert SPARSE_INDEX_PARAMS["params"]["bm25_k1"] == 1.5
+
+    def test_sparse_index_params_has_bm25_b(self) -> None:
+        """Test SPARSE_INDEX_PARAMS contains bm25_b parameter."""
+        assert "bm25_b" in SPARSE_INDEX_PARAMS["params"]
+        assert SPARSE_INDEX_PARAMS["params"]["bm25_b"] == 0.8
+
+
 @pytest.mark.integration
 class TestIndexManagerIntegration:
     """Integration tests for IndexManager (requires running Milvus)."""

@@ -306,15 +306,138 @@ Search Query (HTTP) → Query Embedding
 
 ## RAG Processing Pipeline核心设计
 BM25 reference: `docs/BM25_procedure.md`
+
+### BM25 混合检索架构
+
+项目采用 **Milvus 2.5+ 内置 BM25 Function** 实现混合检索，结合密集向量（dense vector）和稀疏向量（sparse vector）提供更准确的检索能力。
+
+#### 技术选型
+
+| 方案 | 说明 | 状态 |
+|------|------|------|
+| Milvus 内置 BM25 | 自动从文本生成 sparse vector，无需额外计算 | ✅ 已采用 |
+| 自定义 BM25 | 使用 rank_bm25 库手动生成 sparse vector | ❌ 未采用 |
+
+#### 架构图
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     Hybrid Search Architecture                   │
+│                                                                  │
+│  Query Text                                                      │
+│      │                                                           │
+│      ├─────────────────────────┬─────────────────────────┐      │
+│      │                         │                         │      │
+│      ▼                         ▼                         │      │
+│  ┌───────────┐          ┌───────────┐                    │      │
+│  │  Dense    │          │  BM25     │                    │      │
+│  │ Embedding │          │ (Milvus)  │                    │      │
+│  │  (QWEN)   │          │           │                    │      │
+│  └─────┬─────┘          └─────┬─────┘                    │      │
+│        │                      │                          │      │
+│        ▼                      ▼                          │      │
+│  ┌───────────┐          ┌───────────┐                    │      │
+│  │  Vector   │          │  Sparse   │                    │      │
+│  │  Search   │          │  Search   │                    │      │
+│  │ (IP/COS)  │          │  (BM25)   │                    │      │
+│  └─────┬─────┘          └─────┬─────┘                    │      │
+│        │                      │                          │      │
+│        └──────────┬───────────┘                          │      │
+│                   │                                      │      │
+│                   ▼                                      │      │
+│            ┌───────────┐                                 │      │
+│            │    RRF    │  Reciprocal Rank Fusion         │      │
+│            │  Ranker   │  k=60 (default)                 │      │
+│            └─────┬─────┘                                 │      │
+│                  │                                       │      │
+│                  ▼                                       │      │
+│           Top-K Results                                  │      │
+│                                                          │      │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### Collection Schema 关键配置
+
+```python
+# text 字段启用中文分词器
+FieldDefinition(
+    name="text",
+    dtype=DataType.VARCHAR,
+    max_length=65535,
+    enable_analyzer=True,
+    analyzer_params={"type": "chinese"},
+    enable_match=True,
+)
+
+# text_sparse 字段（BM25 稀疏向量）
+FieldDefinition(
+    name="text_sparse",
+    dtype=DataType.SPARSE_FLOAT_VECTOR,
+)
+
+# BM25 Function 自动生成 sparse vector
+bm25_function = Function(
+    name="bm25_text_to_sparse",
+    function_type=FunctionType.BM25,
+    input_field_names=["text"],
+    output_field_names=["text_sparse"],
+)
+schema.add_function(bm25_function)
+```
+
+#### 索引配置
+
+| 字段 | 索引类型 | 度量类型 | 参数 |
+|------|---------|---------|------|
+| summary_dense | HNSW | COSINE | M=32, efConstruction=200 |
+| text_dense | HNSW | COSINE | M=32, efConstruction=200 |
+| text_sparse | SPARSE_WAND | BM25 | bm25_k1=1.5, bm25_b=0.8 |
+
+#### BM25 参数说明
+
+| 参数 | 值 | 说明 |
+|------|-----|------|
+| k1 | 1.5 | 词频饱和因子，平衡词频重要性，适用于混合语料 |
+| b | 0.8 | 长度归一化因子，强归一化确保长短文档公平竞争 |
+| RRF k | 60 | Reciprocal Rank Fusion 参数 |
+
+**参数调优依据**：
+- 文档类型：技术文档（PDF）+ 问答
+- 平均 chunk 大小：约 210 tokens（中等长度）
+- 语言：中英混合
+
+#### 混合检索 API
+
+```python
+# BM25 搜索
+POST /api/v1/milvus/search/bm25/
+{
+    "collection_name": "documents",
+    "query_text": "BM25 查询文本",
+    "top_k": 10
+}
+
+# 混合检索（Dense + Sparse）
+POST /api/v1/milvus/search/hybrid/
+{
+    "collection_name": "documents",
+    "query_text": "查询文本",
+    "query_vectors": {"text_dense": [...]},
+    "top_k": 10,
+    "include_sparse": true,
+    "rrf_k": 60
+}
+```
+
 **流程**:
 1. **Query Processing**
    - 用户问题预处理（去停用词、标准化）
-   - 生成query embedding
+   - 生成 query embedding
 
 2. **Retrieval Stage**
-   - Milvus向量检索（语义相似度）
-   - Neo4j图检索（关联实体和概念）
-   - PostgreSQL关键词检索（补充）
+   - Milvus 向量检索（语义相似度）
+   - Milvus BM25 检索（关键词匹配）
+   - Neo4j 图检索（关联实体和概念）
    
 3. **Context Assembly**
    - 检索结果去重和排序

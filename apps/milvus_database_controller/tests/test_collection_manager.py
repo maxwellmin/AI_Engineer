@@ -334,6 +334,87 @@ class TestCollectionManagerWithCustomSchema:
             )
 
 
+@pytest.mark.unit
+class TestDocumentCollectionSchema:
+    """Test DocumentCollectionSchema with BM25 sparse vector support."""
+
+    def test_schema_contains_text_sparse_field(self) -> None:
+        """Test that schema includes text_sparse field for BM25."""
+        from apps.milvus_database_controller.schemas.collection_schema import (
+            DocumentCollectionSchema,
+        )
+
+        schema = DocumentCollectionSchema(dimension=1536)
+        field_names = schema.get_field_names()
+
+        assert "text_sparse" in field_names
+
+    def test_schema_sparse_vector_field_names(self) -> None:
+        """Test get_sparse_vector_field_names returns text_sparse."""
+        from apps.milvus_database_controller.schemas.collection_schema import (
+            DocumentCollectionSchema,
+        )
+
+        schema = DocumentCollectionSchema(dimension=1536)
+        sparse_fields = schema.get_sparse_vector_field_names()
+
+        assert len(sparse_fields) == 1
+        assert sparse_fields[0] == "text_sparse"
+
+    def test_schema_dense_vector_field_names(self) -> None:
+        """Test get_dense_vector_field_names returns dense vector fields."""
+        from apps.milvus_database_controller.schemas.collection_schema import (
+            DocumentCollectionSchema,
+        )
+
+        schema = DocumentCollectionSchema(dimension=1536)
+        dense_fields = schema.get_dense_vector_field_names()
+
+        assert len(dense_fields) == 2
+        assert "summary_dense" in dense_fields
+        assert "text_dense" in dense_fields
+
+    def test_text_field_has_analyzer_enabled(self) -> None:
+        """Test that text field has analyzer enabled for BM25."""
+        from apps.milvus_database_controller.schemas.collection_schema import (
+            DocumentCollectionSchema,
+        )
+
+        schema = DocumentCollectionSchema(dimension=1536)
+
+        # Find text field
+        text_field = None
+        for field in schema.fields:
+            if field.name == "text":
+                text_field = field
+                break
+
+        assert text_field is not None
+        assert text_field.enable_analyzer is True
+        assert text_field.analyzer_params == {"type": "chinese"}
+        assert text_field.enable_match is True
+
+    def test_text_sparse_field_definition(self) -> None:
+        """Test text_sparse field is correctly defined."""
+        from pymilvus import DataType
+
+        from apps.milvus_database_controller.schemas.collection_schema import (
+            DocumentCollectionSchema,
+        )
+
+        schema = DocumentCollectionSchema(dimension=1536)
+
+        # Find text_sparse field
+        sparse_field = None
+        for field in schema.fields:
+            if field.name == "text_sparse":
+                sparse_field = field
+                break
+
+        assert sparse_field is not None
+        assert sparse_field.dtype == DataType.SPARSE_FLOAT_VECTOR
+
+
 @pytest.mark.integration
 class TestCollectionManagerIntegration:
     """Integration tests for CollectionManager (requires running Milvus)."""
@@ -358,8 +439,9 @@ class TestCollectionManagerIntegration:
         # Get collection info
         info = collection_manager.describe_collection(test_collection_name)
         assert info.name == test_collection_name
-        # Note: MilvusClient.create_collection auto-loads collection
-        assert info.loaded is True
+        # Note: Collection is created but not loaded into memory
+        # It needs to be loaded explicitly before search
+        assert info.loaded is False
 
         # Drop collection
         result = collection_manager.drop_collection(test_collection_name)

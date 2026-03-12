@@ -21,6 +21,7 @@ from apps.milvus_database_controller.exceptions import (
     MilvusError,
 )
 from apps.milvus_database_controller.serializers import (
+    BM25SearchSerializer,
     DocumentSearchSerializer,
     ErrorSerializer,
     HybridSearchResultSerializer,
@@ -155,6 +156,7 @@ class HybridSearchView(APIView):
         rerank_method = serializer.validated_data["rerank_method"]
         rrf_k = serializer.validated_data["rrf_k"]
         weights = serializer.validated_data.get("weights")
+        include_sparse = serializer.validated_data.get("include_sparse", False)
 
         try:
             service = MilvusService()
@@ -174,6 +176,7 @@ class HybridSearchView(APIView):
                 rerank_method=rerank_method,
                 rrf_k=rrf_k,
                 weights=weights,
+                include_sparse=include_sparse,
             )
 
             query_time_ms = (time.time() - start_time) * 1000
@@ -196,6 +199,73 @@ class HybridSearchView(APIView):
             )
         except MilvusError as e:
             logger.error(f"Failed to perform hybrid search: {e}")
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class BM25SearchView(APIView):
+    """Perform BM25 sparse vector search."""
+
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Perform BM25 sparse vector search for text retrieval",
+        request_body=BM25SearchSerializer,
+        responses={
+            200: SearchResultSerializer,
+            400: ErrorSerializer,
+            404: ErrorSerializer,
+            500: ErrorSerializer,
+        },
+        tags=["Milvus - Search"],
+    )
+    def post(self, request: Request) -> Response:
+        """Perform BM25 search."""
+        serializer = BM25SearchSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        collection_name = serializer.validated_data["collection_name"]
+        query_text = serializer.validated_data["query_text"]
+        top_k = serializer.validated_data["top_k"]
+        filter_expr = serializer.validated_data["filter_expr"]
+        output_fields = serializer.validated_data.get("output_fields")
+
+        try:
+            service = MilvusService()
+
+            if not service.has_collection(collection_name):
+                raise CollectionNotFoundError(collection_name)
+
+            start_time = time.time()
+
+            result = service.bm25_search(
+                collection_name=collection_name,
+                query_text=query_text,
+                top_k=top_k,
+                filter_expr=filter_expr,
+                output_fields=output_fields,
+            )
+
+            query_time_ms = (time.time() - start_time) * 1000
+
+            return Response(
+                {
+                    "items": [_format_search_result_item(item) for item in result.items],
+                    "total": result.total,
+                    "query_time_ms": query_time_ms,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        except CollectionNotFoundError as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except MilvusError as e:
+            logger.error(f"Failed to perform BM25 search: {e}")
             return Response(
                 {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,

@@ -261,6 +261,106 @@ class TestHybridSearch:
         with pytest.raises(CollectionNotFoundError):
             manager.hybrid_search(request)
 
+    @patch("apps.milvus_database_controller.managers.search_manager.MilvusClientWrapper")
+    def test_hybrid_search_with_sparse_enabled(self, mock_wrapper: MagicMock) -> None:
+        """Test hybrid search with dense + sparse (BM25) fusion."""
+        mock_client = MagicMock()
+        mock_client.has_collection.return_value = True
+        mock_client.hybrid_search.return_value = [[
+            {"id": "id1", "distance": 0.05, "text": "text1"},
+            {"id": "id2", "distance": 0.08, "text": "text2"},
+        ]]
+        mock_wrapper.get_instance.return_value = mock_client
+
+        manager = SearchManager()
+        request = HybridSearchRequest(
+            collection_name="test_collection",
+            query_text="BM25 query text",
+            query_vectors={
+                FieldName.SUMMARY_DENSE.value: [0.1] * 1536,
+                FieldName.TEXT_DENSE.value: [0.2] * 1536,
+            },
+            top_k=5,
+            include_sparse=True,  # Enable BM25 sparse search
+        )
+
+        result = manager.hybrid_search(request)
+
+        # Verify hybrid_search was called with Milvus API
+        assert mock_client.hybrid_search.called
+        assert result.search_details["include_sparse"] is True
+        assert result.search_details["method"] == "milvus_hybrid_rrf"
+
+    @patch("apps.milvus_database_controller.managers.search_manager.MilvusClientWrapper")
+    def test_hybrid_search_sparse_uses_rrf_ranker(self, mock_wrapper: MagicMock) -> None:
+        """Test hybrid search with sparse uses RRFRanker."""
+        mock_client = MagicMock()
+        mock_client.has_collection.return_value = True
+        mock_client.hybrid_search.return_value = [[]]
+        mock_wrapper.get_instance.return_value = mock_client
+
+        manager = SearchManager()
+        request = HybridSearchRequest(
+            collection_name="test_collection",
+            query_text="test query",
+            query_vectors={FieldName.TEXT_DENSE.value: [0.1] * 1536},
+            top_k=10,
+            include_sparse=True,
+            rrf_k=100,  # Custom RRF k parameter
+        )
+
+        manager.hybrid_search(request)
+
+        # Verify hybrid_search was called with ranker
+        call_kwargs = mock_client.hybrid_search.call_args[1]
+        assert "ranker" in call_kwargs
+
+    @patch("apps.milvus_database_controller.managers.search_manager.MilvusClientWrapper")
+    def test_hybrid_search_sparse_requires_query_text(self, mock_wrapper: MagicMock) -> None:
+        """Test hybrid search with sparse requires query_text."""
+        mock_client = MagicMock()
+        mock_client.has_collection.return_value = True
+        mock_client.search.return_value = [[
+            {"id": "id1", "distance": 0.1, "text": "text1"},
+        ]]
+        mock_wrapper.get_instance.return_value = mock_client
+
+        manager = SearchManager()
+        # Request with include_sparse=True but no query_text
+        request = HybridSearchRequest(
+            collection_name="test_collection",
+            query_text="",  # Empty query text
+            query_vectors={FieldName.TEXT_DENSE.value: [0.1] * 1536},
+            include_sparse=True,
+        )
+
+        result = manager.hybrid_search(request)
+
+        # Should fall back to dense-only search
+        assert result.search_details["include_sparse"] is False
+        assert mock_client.search.called  # Uses search, not hybrid_search
+
+    @patch("apps.milvus_database_controller.managers.search_manager.MilvusClientWrapper")
+    def test_hybrid_search_sparse_disabled_by_default(self, mock_wrapper: MagicMock) -> None:
+        """Test hybrid search sparse is disabled by default."""
+        mock_client = MagicMock()
+        mock_client.has_collection.return_value = True
+        mock_client.search.return_value = [[]]
+        mock_wrapper.get_instance.return_value = mock_client
+
+        manager = SearchManager()
+        request = HybridSearchRequest(
+            collection_name="test_collection",
+            query_text="test query",
+            query_vectors={FieldName.TEXT_DENSE.value: [0.1] * 1536},
+            # include_sparse not set (defaults to False)
+        )
+
+        result = manager.hybrid_search(request)
+
+        # Should use dense-only search
+        assert result.search_details["include_sparse"] is False
+
 
 @pytest.mark.unit
 class TestRRFFusion:
@@ -356,10 +456,49 @@ class TestBM25Search:
     """Test BM25 sparse vector search."""
 
     @patch("apps.milvus_database_controller.managers.search_manager.MilvusClientWrapper")
-    def test_bm25_search_placeholder(self, mock_wrapper: MagicMock) -> None:
-        """Test BM25 search returns placeholder (requires embedding service)."""
+    def test_bm25_search_success(self, mock_wrapper: MagicMock) -> None:
+        """Test BM25 search successfully returns results."""
         mock_client = MagicMock()
         mock_client.has_collection.return_value = True
+        mock_client.search.return_value = [[
+            {
+                "id": "id1",
+                "distance": 0.85,
+                "text": "Milvus is a vector database",
+                "summary": "A summary",
+                "source": "upload",
+            },
+            {
+                "id": "id2",
+                "distance": 0.72,
+                "text": "Vector search with BM25",
+                "summary": "Another summary",
+                "source": "upload",
+            },
+        ]]
+        mock_wrapper.get_instance.return_value = mock_client
+
+        manager = SearchManager()
+        request = BM25SearchRequest(
+            collection_name="test_collection",
+            query_text="vector database BM25",
+            top_k=10,
+        )
+
+        result = manager.bm25_search(request)
+
+        assert result.total == 2
+        assert len(result.items) == 2
+        assert result.items[0].id == "id1"
+        assert result.items[0].distance == 0.85
+        assert result.query_time_ms > 0
+
+    @patch("apps.milvus_database_controller.managers.search_manager.MilvusClientWrapper")
+    def test_bm25_search_uses_sparse_field(self, mock_wrapper: MagicMock) -> None:
+        """Test BM25 search uses text_sparse field."""
+        mock_client = MagicMock()
+        mock_client.has_collection.return_value = True
+        mock_client.search.return_value = [[]]
         mock_wrapper.get_instance.return_value = mock_client
 
         manager = SearchManager()
@@ -368,12 +507,109 @@ class TestBM25Search:
             query_text="test query",
         )
 
-        # BM25 search is not fully implemented yet
-        result = manager.bm25_search(request)
+        manager.bm25_search(request)
 
-        # Should return empty results for now
-        assert result.total == 0
-        assert len(result.items) == 0
+        # Verify search was called with text_sparse field
+        call_kwargs = mock_client.search.call_args[1]
+        assert call_kwargs["anns_field"] == FieldName.TEXT_SPARSE.value
+
+    @patch("apps.milvus_database_controller.managers.search_manager.MilvusClientWrapper")
+    def test_bm25_search_passes_query_text(self, mock_wrapper: MagicMock) -> None:
+        """Test BM25 search passes query text directly to Milvus."""
+        mock_client = MagicMock()
+        mock_client.has_collection.return_value = True
+        mock_client.search.return_value = [[]]
+        mock_wrapper.get_instance.return_value = mock_client
+
+        manager = SearchManager()
+        query_text = "BM25 sparse vector search"
+        request = BM25SearchRequest(
+            collection_name="test_collection",
+            query_text=query_text,
+        )
+
+        manager.bm25_search(request)
+
+        # Verify query text was passed directly (Milvus handles text->sparse conversion)
+        call_kwargs = mock_client.search.call_args[1]
+        assert call_kwargs["data"] == [query_text]
+
+    @patch("apps.milvus_database_controller.managers.search_manager.MilvusClientWrapper")
+    def test_bm25_search_with_filter(self, mock_wrapper: MagicMock) -> None:
+        """Test BM25 search with filter expression."""
+        mock_client = MagicMock()
+        mock_client.has_collection.return_value = True
+        mock_client.search.return_value = [[]]
+        mock_wrapper.get_instance.return_value = mock_client
+
+        manager = SearchManager()
+        request = BM25SearchRequest(
+            collection_name="test_collection",
+            query_text="test query",
+            filter_expr=f'{FieldName.SOURCE.value} == "upload"',
+        )
+
+        manager.bm25_search(request)
+
+        call_kwargs = mock_client.search.call_args[1]
+        assert call_kwargs["filter_expr"] == f'{FieldName.SOURCE.value} == "upload"'
+
+    @patch("apps.milvus_database_controller.managers.search_manager.MilvusClientWrapper")
+    def test_bm25_search_collection_not_found(self, mock_wrapper: MagicMock) -> None:
+        """Test BM25 search raises error when collection not found."""
+        mock_client = MagicMock()
+        mock_client.has_collection.return_value = False
+        mock_wrapper.get_instance.return_value = mock_client
+
+        manager = SearchManager()
+        request = BM25SearchRequest(
+            collection_name="non_existent",
+            query_text="test query",
+        )
+
+        with pytest.raises(CollectionNotFoundError):
+            manager.bm25_search(request)
+
+    @patch("apps.milvus_database_controller.managers.search_manager.MilvusClientWrapper")
+    def test_bm25_search_failure(self, mock_wrapper: MagicMock) -> None:
+        """Test BM25 search raises error on failure."""
+        mock_client = MagicMock()
+        mock_client.has_collection.return_value = True
+        mock_client.search.side_effect = Exception("BM25 search failed")
+        mock_wrapper.get_instance.return_value = mock_client
+
+        manager = SearchManager()
+        request = BM25SearchRequest(
+            collection_name="test_collection",
+            query_text="test query",
+        )
+
+        with pytest.raises(SearchError) as exc_info:
+            manager.bm25_search(request)
+
+        assert "BM25 search failed" in exc_info.value.reason
+
+    @patch("apps.milvus_database_controller.managers.search_manager.MilvusClientWrapper")
+    def test_bm25_search_custom_output_fields(self, mock_wrapper: MagicMock) -> None:
+        """Test BM25 search with custom output fields."""
+        mock_client = MagicMock()
+        mock_client.has_collection.return_value = True
+        mock_client.search.return_value = [[]]
+        mock_wrapper.get_instance.return_value = mock_client
+
+        manager = SearchManager()
+        request = BM25SearchRequest(
+            collection_name="test_collection",
+            query_text="test query",
+            output_fields=["pk", "text", "source"],
+        )
+
+        manager.bm25_search(request)
+
+        call_kwargs = mock_client.search.call_args[1]
+        assert "pk" in call_kwargs["output_fields"]
+        assert "text" in call_kwargs["output_fields"]
+        assert "source" in call_kwargs["output_fields"]
 
 
 @pytest.mark.unit

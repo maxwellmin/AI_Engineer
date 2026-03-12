@@ -238,7 +238,7 @@
 ### 阶段 9: document pipeline manager
 **状态**: ✅ 已完成
 **开始日期**: 2026-03-04
-**完成日期**: 2026-03-04
+**完成日期**: 2026-03-12
 **目标**: 文档处理流水线管理，状态跟踪和记录
 
 **详细计划**: 见 `.codebuddy/plans/phase9-document-pipeline-manager.md`
@@ -250,6 +250,7 @@
 - [x] 错误处理和重试机制
 - [x] REST API 可用 (8+ 端点)
 - [x] 测试通过 (单元测试 + 手动测试)
+- [x] **全栈集成验证通过** (CASI_RefGuide.pdf: 14MB, 192 pages → 597 chunks → 597 vectors → 597 Neo4j nodes → 1,560 mentions)
 
 **完成的子模块**:
 1. **9.1 Infrastructure Setup** ✅ - constants, exceptions, dto, settings
@@ -261,6 +262,48 @@
 7. **9.7 API Views Layer** ✅ - 8 REST API endpoints
 8. **9.8 Testing & Documentation** ✅ - tests and docs
 9. **9.9 Manual Test Generation** ✅ - manual test document
+10. **9.10 Full-Stack Integration Verification** ✅ - End-to-end pipeline test passed
+
+**全栈集成测试结果**:
+- **测试文档**: CASI_RefGuide.pdf (14MB, 192 pages)
+- **Parse Step**: ✅ Extract text from PDF
+- **Chunk Step**: ✅ Split into 597 chunks
+- **Embed Step**: ✅ Generate dense embeddings
+- **Vectorize Step**: ✅ Insert 597 vectors (dense + sparse BM25)
+- **Graph Step**: ✅ Create 597 Chunk nodes in Neo4j
+- **Extract Step**: ✅ Extract 1,560 entity mentions
+- **Pipeline Duration**: ~15 minutes end-to-end
+
+**解决的问题 (6 个关键 Bug)**:
+1. **Parse Step MinIO Path Handling** (2026-03-10)
+   - 问题: ParseStepRunner 无法找到 MinIO 文件 - 路径构造错误
+   - 解决: 修复 `parse_runner.py` 中的路径处理
+
+2. **Chunk Step Content Persistence** (2026-03-10)
+   - 问题: ChunkStepRunner 未能保存 chunk content 到数据库
+   - 解决: 添加显式 `chunk.content` 字段填充
+
+3. **Vectorize Step Sparse Vector Support** (2026-03-10)
+   - 问题: MilvusCollectionManager.insert() 不支持 sparse vector 字段
+   - 解决: 更新 insert 方法支持 dense + sparse vectors
+
+4. **Graph Step Neo4j Parameter Passing** (2026-03-11)
+   - 问题: Neo4j 查询失败 - 参数绑定错误
+   - 解决: 修复 `graph_runner.py` 中的参数字典结构
+
+5. **BM25 Sparse Vector Support** (2026-03-11)
+   - 问题: Milvus 2.4 不支持原生 BM25 Function
+   - 解决: 升级到 Milvus 2.5+, 实现 sparse vector insertion
+
+6. **MinIO Bucket Auto-Creation** (2026-03-12)
+   - 问题: 如果 MinIO bucket 不存在，pipeline 失败
+   - 解决: 添加自动 bucket 创建功能
+
+**生产级功能**:
+- Pipeline retry mechanism - 自动重试机制
+- Step-level error handling - 步骤级错误处理
+- Automatic MinIO bucket creation - 自动 MinIO bucket 创建
+- BM25 hybrid search ready - BM25 混合搜索就绪
 
 **创建的主要文件**:
 - `apps/document_pipeline_manager/constants.py` - PipelineStepName, PipelineStatus, ErrorCode, EntityType
@@ -281,6 +324,9 @@
 **修改的文件**:
 - `config/settings/base.py` - Add PIPELINE_CONFIG
 - `config/urls.py` - Include pipeline URLs
+- `dev_utils/docker-compose.yml` - Upgrade Milvus to 2.5+
+- `apps/documents_parser/services/storage.py` - Auto bucket creation
+- `apps/milvus_database_controller/managers/collection_manager.py` - Sparse vector support
 
 **API Endpoints**:
 - **Pipeline Execution**: POST `/api/v1/pipeline/execute/`, POST `/api/v1/pipeline/retry/`, POST `/api/v1/pipeline/cancel/`
@@ -298,6 +344,7 @@
 - PipelineOrchestrator 统一协调执行
 - 支持重试和取消操作
 - 完整的错误处理链
+- **生产就绪**: 14MB PDF 全栈集成验证通过
 
 **依赖**: 阶段 4, 5, 6, 7, 8 完成 ✅
 
@@ -357,6 +404,7 @@
 
 | 日期 | 阶段 | 更新内容 |
 |------|------|---------|
+| 2026-03-12 | 阶段 9 | 完成 Phase 9 全栈集成验证：CASI_RefGuide.pdf (14MB, 192 pages) → 597 chunks → 597 vectors (dense + sparse BM25) → 597 Neo4j nodes → 1,560 mentions。解决 6 个关键 Bug，升级 Milvus 2.5+，实现生产级功能 |
 | 2026-03-04 | 阶段 9 | 完成 document_pipeline_manager：9个子模块、PipelineExecution/Step模型、6个StepRunners、PipelineOrchestrator、PipelineService、8个REST API、MockEntityExtractor、完整测试 |
 | 2026-03-04 | 阶段 7 | 完成 neo4j_database_controller：6个子模块、Neo4jClient单例、3个Manager、Neo4jService门面、20+ REST API、RAG专用方法、EntityExtractorInterface预留LLM集成、93 tests |
 | 2026-02-26 | 阶段 8 | 完成 embedding_engine：QwenClient封装、5个API端点、文本长度验证、API测试100%通过 (22/22 tests) |

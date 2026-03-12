@@ -12,6 +12,7 @@ import time
 from typing import TYPE_CHECKING, Any
 
 from apps.milvus_database_controller.client import MilvusClientWrapper
+from apps.milvus_database_controller.client import AnnSearchRequest, RRFRanker
 from apps.milvus_database_controller.constants import (
     DEFAULT_TOP_K,
     FieldName,
@@ -177,11 +178,14 @@ class SearchManager:
     def hybrid_search(self, request: HybridSearchRequest) -> HybridSearchResult:
         """Perform hybrid search across multiple vector fields.
 
-        This method performs searches on multiple vector fields and combines
-        the results using Reciprocal Rank Fusion (RRF) or weighted scoring.
+        This method supports:
+        1. Multi-dense-vector fusion (summary_dense + text_dense)
+        2. Dense + sparse (BM25) fusion
+
+        For dense + sparse fusion, pass query_text and enable_sparse=True.
 
         Args:
-            request: Hybrid search request with multiple query vectors.
+            request: Hybrid search request with query vectors and optional query_text.
 
         Returns:
             HybridSearchResult with combined and reranked items.
@@ -205,63 +209,27 @@ class SearchManager:
                 FieldName.CHUNK_ID.value,
             ]
 
-            # Store results from each search
-            all_results: dict[str, list[dict[str, Any]]] = {}
+            # Check if we should include BM25 sparse search
+            include_sparse = (
+                hasattr(request, "include_sparse")
+                and request.include_sparse
+                and request.query_text
+            )
 
-            # Perform individual searches for each vector field
-            for field_name, query_vector in request.query_vectors.items():
-                search_req = SearchRequest(
-                    collection_name=request.collection_name,
-                    query_vector=query_vector,
-                    anns_field=field_name,
-                    top_k=request.top_k * 2,  # Get more for better fusion
-                    filter_expr=request.filter_expr,
+            if include_sparse:
+                # Use Milvus hybrid_search API for dense + sparse fusion
+                return self._hybrid_search_with_sparse(
+                    request=request,
                     output_fields=output_fields,
-                )
-
-                result = self.search(search_req)
-                all_results[field_name] = [
-                    {
-                        "id": item.id,
-                        "distance": item.distance,
-                        "text": item.text,
-                        "summary": item.summary,
-                        "document": item.document,
-                        "source": item.source,
-                        "source_name": item.source_name,
-                        "lt_doc_id": item.lt_doc_id,
-                        "chunk_id": item.chunk_id,
-                    }
-                    for item in result.items
-                ]
-
-            # Combine results using RRF or weighted scoring
-            if request.rerank_method == "rrf":
-                combined = self._reciprocal_rank_fusion(
-                    all_results,
-                    k=request.rrf_k,
-                    top_k=request.top_k,
+                    start_time=start_time,
                 )
             else:
-                combined = self._weighted_fusion(
-                    all_results,
-                    weights=request.weights,
-                    top_k=request.top_k,
+                # Use application-level fusion for multi-dense-vector search
+                return self._hybrid_search_dense_only(
+                    request=request,
+                    output_fields=output_fields,
+                    start_time=start_time,
                 )
-
-            query_time_ms = (time.time() - start_time) * 1000
-
-            logger.debug(
-                f"Hybrid search completed in {query_time_ms:.2f}ms, "
-                f"found {len(combined)} results"
-            )
-
-            return HybridSearchResult(
-                items=combined,
-                total=len(combined),
-                query_time_ms=query_time_ms,
-                search_details={"method": request.rerank_method},
-            )
 
         except Exception as e:
             logger.error(f"Hybrid search failed: {e}")
@@ -269,6 +237,143 @@ class SearchManager:
                 reason=str(e),
                 collection_name=request.collection_name,
             )
+
+    def _hybrid_search_with_sparse(
+        self,
+        request: HybridSearchRequest,
+        output_fields: list[str],
+        start_time: float,
+    ) -> HybridSearchResult:
+        """Perform dense + sparse hybrid search using Milvus API.
+
+        Uses Milvus 2.5+ hybrid_search with AnnSearchRequest and RRFRanker.
+        """
+        # Build search requests for each vector field
+        reqs: list[AnnSearchRequest] = []
+
+        # Dense vector search requests
+        for field_name, query_vector in request.query_vectors.items():
+            dense_req = AnnSearchRequest(
+                data=[query_vector],
+                anns_field=field_name,
+                param=HNSW_SEARCH_PARAMS,
+                limit=request.top_k * 2,  # Get more for better fusion
+                expr=request.filter_expr if request.filter_expr else None,
+            )
+            reqs.append(dense_req)
+
+        # BM25 sparse search request
+        sparse_req = AnnSearchRequest(
+            data=[request.query_text],  # Pass query text directly
+            anns_field=FieldName.TEXT_SPARSE.value,
+            param=SPARSE_SEARCH_PARAMS,
+            limit=request.top_k * 2,
+            expr=request.filter_expr if request.filter_expr else None,
+        )
+        reqs.append(sparse_req)
+
+        # Create ranker (RRF by default)
+        ranker = RRFRanker(k=request.rrf_k)
+
+        # Execute hybrid search
+        results = self._client.hybrid_search(
+            collection_name=request.collection_name,
+            reqs=reqs,
+            ranker=ranker,
+            limit=request.top_k,
+            output_fields=output_fields,
+        )
+
+        # Parse results
+        items = self._parse_search_results(results, request.top_k)
+        query_time_ms = (time.time() - start_time) * 1000
+
+        logger.debug(
+            f"Dense+sparse hybrid search completed in {query_time_ms:.2f}ms, "
+            f"found {len(items)} results"
+        )
+
+        return HybridSearchResult(
+            items=items,
+            total=len(items),
+            query_time_ms=query_time_ms,
+            search_details={
+                "method": "milvus_hybrid_rrf",
+                "rrf_k": request.rrf_k,
+                "include_sparse": True,
+            },
+        )
+
+    def _hybrid_search_dense_only(
+        self,
+        request: HybridSearchRequest,
+        output_fields: list[str],
+        start_time: float,
+    ) -> HybridSearchResult:
+        """Perform multi-dense-vector hybrid search with application-level fusion.
+
+        This is the original implementation for dense-only fusion.
+        """
+        # Store results from each search
+        all_results: dict[str, list[dict[str, Any]]] = {}
+
+        # Perform individual searches for each vector field
+        for field_name, query_vector in request.query_vectors.items():
+            search_req = SearchRequest(
+                collection_name=request.collection_name,
+                query_vector=query_vector,
+                anns_field=field_name,
+                top_k=request.top_k * 2,  # Get more for better fusion
+                filter_expr=request.filter_expr,
+                output_fields=output_fields,
+            )
+
+            result = self.search(search_req)
+            all_results[field_name] = [
+                {
+                    "id": item.id,
+                    "distance": item.distance,
+                    "text": item.text,
+                    "summary": item.summary,
+                    "document": item.document,
+                    "source": item.source,
+                    "source_name": item.source_name,
+                    "lt_doc_id": item.lt_doc_id,
+                    "chunk_id": item.chunk_id,
+                }
+                for item in result.items
+            ]
+
+        # Combine results using RRF or weighted scoring
+        if request.rerank_method == "rrf":
+            combined = self._reciprocal_rank_fusion(
+                all_results,
+                k=request.rrf_k,
+                top_k=request.top_k,
+            )
+        else:
+            combined = self._weighted_fusion(
+                all_results,
+                weights=request.weights,
+                top_k=request.top_k,
+            )
+
+        query_time_ms = (time.time() - start_time) * 1000
+
+        logger.debug(
+            f"Dense-only hybrid search completed in {query_time_ms:.2f}ms, "
+            f"found {len(combined)} results"
+        )
+
+        return HybridSearchResult(
+            items=combined,
+            total=len(combined),
+            query_time_ms=query_time_ms,
+            search_details={
+                "method": request.rerank_method,
+                "include_sparse": False,
+            },
+        )
 
     def _reciprocal_rank_fusion(
         self,
@@ -386,19 +491,20 @@ class SearchManager:
         """Perform BM25 sparse vector search.
 
         This method uses Milvus built-in BM25 function for text search.
-        Note: The collection must have a sparse vector field with BM25 index.
+        The query text is passed directly to Milvus, which handles the
+        sparse vector generation automatically.
 
         Args:
             request: BM25 search request with query text.
 
         Returns:
             SearchResult with matching items.
+
+        Raises:
+            CollectionNotFoundError: If collection does not exist.
+            SearchError: If search fails.
         """
         self._validate_collection(request.collection_name)
-
-        # Note: BM25 search in Milvus requires the query to be converted
-        # to a sparse vector. This typically requires an embedding service.
-        # For now, this is a placeholder that uses the sparse vector field.
 
         start_time = time.time()
 
@@ -409,25 +515,41 @@ class SearchManager:
                 FieldName.SUMMARY.value,
                 FieldName.DOCUMENT.value,
                 FieldName.SOURCE.value,
+                FieldName.SOURCE_NAME.value,
                 FieldName.LT_DOC_ID.value,
+                FieldName.CHUNK_ID.value,
             ]
 
-            # BM25 search requires sparse vector input
-            # This would typically be generated by an embedding service
-            # For now, we'll need to implement sparse embedding generation
+            # BM25 search: pass query text directly
+            # Milvus 2.5+ BM25 Function handles text -> sparse vector conversion
+            search_params = SPARSE_SEARCH_PARAMS.copy()
 
-            logger.warning(
-                "BM25 search requires sparse vector embedding. "
-                "This functionality requires integration with embedding service."
+            logger.debug(
+                f"BM25 search in '{request.collection_name}' with query: "
+                f"'{request.query_text[:50]}...' top_k={request.top_k}"
             )
 
-            # Placeholder: return empty results
-            # In production, this would perform actual BM25 search
+            results = self._client.search(
+                collection_name=request.collection_name,
+                data=[request.query_text],  # Pass query text directly
+                anns_field=FieldName.TEXT_SPARSE.value,
+                limit=request.top_k,
+                filter_expr=request.filter_expr if request.filter_expr else None,
+                output_fields=output_fields,
+                search_params=search_params,
+            )
+
+            items = self._parse_search_results(results, request.top_k)
             query_time_ms = (time.time() - start_time) * 1000
 
+            logger.debug(
+                f"BM25 search completed in {query_time_ms:.2f}ms, "
+                f"found {len(items)} results"
+            )
+
             return SearchResult(
-                items=[],
-                total=0,
+                items=items,
+                total=len(items),
                 query_time_ms=query_time_ms,
             )
 

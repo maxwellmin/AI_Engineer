@@ -118,8 +118,10 @@ DEFAULT_IVF_NLIST = 128
 DEFAULT_IVF_NPROBE = 10
 
 # BM25 parameters
+# k1: Term frequency saturation parameter (1.2-2.0 typical, 1.5 for mixed corpus)
+# b: Document length normalization (0.75 typical, 0.8 for strong normalization)
 DEFAULT_BM25_K1 = 1.5
-DEFAULT_BM25_B = 0.75
+DEFAULT_BM25_B = 0.8
 
 # Search defaults
 DEFAULT_TOP_K = 10
@@ -159,18 +161,20 @@ HNSW_SEARCH_PARAMS: dict = {
 # Sparse Index Parameters
 # =============================================================================
 
-# Note: Sparse vector index only supports IP (inner product) metric type
-# BM25 functionality requires Milvus Function, not direct BM25 metric
+# BM25 sparse index parameters for Milvus 2.5+
+# Note: For BM25 search, use metric_type="BM25" and index_type="SPARSE_WAND"
+# The k1 and b parameters are configured at index creation time
 SPARSE_INDEX_PARAMS: dict = {
-    "index_type": IndexType.SPARSE_INVERTED_INDEX.value,
-    "metric_type": MetricType.IP.value,  # Sparse index only supports IP
+    "index_type": IndexType.SPARSE_WAND.value,
+    "metric_type": MetricType.BM25.value,
     "params": {
-        "drop_ratio_build": 0.2,
+        "bm25_k1": DEFAULT_BM25_K1,  # Term frequency saturation
+        "bm25_b": DEFAULT_BM25_B,    # Document length normalization
     },
 }
 
 SPARSE_SEARCH_PARAMS: dict = {
-    "metric_type": MetricType.IP.value,
+    "metric_type": MetricType.BM25.value,
     "params": {
         "drop_ratio_search": 0.2,
     },

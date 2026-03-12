@@ -1524,5 +1524,381 @@ milvus_database_controller (Vector Database Operations)
 ---
 
 *Generated: 2026-02-26*
-*Last Updated: 2026-03-03*
+*Last Updated: 2026-03-11*
 *Phase 6: Milvus Database Controller Manual Test Guide*
+
+---
+
+## BM25 搜索测试
+
+### 前置条件
+
+1. Collection 已使用 BM25 Function 创建（Milvus 2.5+）
+2. 文档数据已插入（sparse vector 自动生成）
+3. Collection 已加载到内存
+
+```bash
+# 重建 Collection（启用 BM25）
+python manage.py rebuild_collection --collection documents
+```
+
+---
+
+### 测试 19: BM25 文本搜索
+
+**目的**: 验证 BM25 sparse vector 搜索返回关键词相关结果
+
+**curl 命令**:
+```bash
+# BM25 搜索
+# 描述: 使用关键词进行 BM25 文本搜索
+curl -X POST "http://localhost:8000/api/v1/milvus/search/bm25/" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "collection_name": "documents",
+    "query_text": "Milvus 向量数据库",
+    "top_k": 10,
+    "filter_expr": "",
+    "output_fields": ["pk", "text", "source", "lt_doc_id"]
+  }'
+```
+
+**请求参数说明**:
+- `collection_name` (必填): Collection 名称
+- `query_text` (必填): 查询文本，Milvus 自动转换为 sparse vector
+- `top_k` (可选, 默认 10): 返回结果数量
+- `filter_expr` (可选): 过滤表达式
+- `output_fields` (可选): 返回字段列表
+
+**预期响应 (200 OK)**:
+```json
+{
+  "items": [
+    {
+      "pk": "doc-001-chunk-001",
+      "distance": 3.5,
+      "text": "Milvus 是一个高性能的向量数据库...",
+      "summary": "Milvus 向量数据库简介",
+      "document": "...",
+      "source": "upload",
+      "source_name": "milvus_intro.pdf",
+      "lt_doc_id": "550e8400-e29b-41d4-a716-446655440000",
+      "chunk_id": 1
+    }
+  ],
+  "total": 5,
+  "query_time_ms": 15.5
+}
+```
+
+**验证点**:
+- [x] HTTP 状态码为 200
+- [x] `items` 包含搜索结果
+- [x] `distance` 表示 BM25 相关性分数
+- [x] 关键词匹配的文档排名靠前
+
+**Status**: [x] PASS
+
+**Test Results** (Executed: 2026-03-11):
+- **Actual Status Code**: 200
+- **Actual Response**:
+  ```json
+  {"items":[...],"total":3,"query_time_ms":12.5}
+  ```
+- **Notes**: BM25 搜索成功，查询 "BM25 检索" 返回 BM25 相关文档排名第一
+
+---
+
+### 测试 20: 带过滤条件的 BM25 搜索
+
+**目的**: 在 BM25 搜索时应用过滤条件
+
+**curl 命令**:
+```bash
+# 带过滤的 BM25 搜索
+# 描述: 搜索特定来源的文档
+curl -X POST "http://localhost:8000/api/v1/milvus/search/bm25/" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "collection_name": "documents",
+    "query_text": "混合检索",
+    "top_k": 5,
+    "filter_expr": "source == \"upload\"",
+    "output_fields": ["pk", "text", "source"]
+  }'
+```
+
+**验证点**:
+- [x] HTTP 状态码为 200
+- [x] 所有返回结果的 `source` 为指定值
+
+**Status**: [x] PASS
+
+---
+
+### 测试 21: 混合搜索 (Dense + Sparse)
+
+**目的**: 验证混合搜索融合 dense vector 和 BM25 sparse vector
+
+**curl 命令 (Dense-only)**:
+```bash
+# Dense-only 混合搜索
+# 描述: 仅使用 dense vectors 进行多字段融合
+curl -X POST "http://localhost:8000/api/v1/milvus/search/hybrid/" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "collection_name": "documents",
+    "query_text": "向量数据库 BM25",
+    "query_vectors": {
+      "text_dense": [0.1, 0.2, ...],
+      "summary_dense": [0.15, 0.25, ...]
+    },
+    "top_k": 10,
+    "include_sparse": false,
+    "rerank_method": "rrf",
+    "rrf_k": 60
+  }'
+```
+
+**curl 命令 (Dense + Sparse)**:
+```bash
+# Dense + Sparse 混合搜索
+# 描述: 结合 dense vectors 和 BM25 sparse 进行融合搜索
+curl -X POST "http://localhost:8000/api/v1/milvus/search/hybrid/" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "collection_name": "documents",
+    "query_text": "向量数据库 BM25",
+    "query_vectors": {
+      "text_dense": [0.1, 0.2, ...],
+      "summary_dense": [0.15, 0.25, ...]
+    },
+    "top_k": 10,
+    "include_sparse": true,
+    "rrf_k": 60
+  }'
+```
+
+**请求参数说明**:
+- `include_sparse` (可选, 默认 false): 是否包含 BM25 sparse 搜索
+- 其他参数同标准混合搜索
+
+**预期响应 (Dense-only)**:
+```json
+{
+  "items": [...],
+  "total": 10,
+  "query_time_ms": 20.5,
+  "search_details": {
+    "method": "rrf",
+    "include_sparse": false
+  }
+}
+```
+
+**预期响应 (Dense + Sparse)**:
+```json
+{
+  "items": [...],
+  "total": 10,
+  "query_time_ms": 25.5,
+  "search_details": {
+    "method": "milvus_hybrid_rrf",
+    "include_sparse": true,
+    "rrf_k": 60
+  }
+}
+```
+
+**验证点**:
+- [x] HTTP 状态码为 200
+- [x] `search_details.method` 为 `milvus_hybrid_rrf`（Dense + Sparse）
+- [x] `search_details.include_sparse` 为 true
+
+**Status**: [x] PASS
+
+**Test Results** (Executed: 2026-03-11):
+- **Dense-only**: method=rrf, include_sparse=false
+- **Dense + Sparse**: method=milvus_hybrid_rrf, include_sparse=true, rrf_k=60
+- **Notes**: RRF 融合正常工作，Dense + Sparse 返回关键词相关结果
+
+---
+
+### 测试 22: BM25 搜索错误场景
+
+**目的**: 验证 BM25 搜索的错误处理
+
+#### 22.1 Collection 不存在
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/milvus/search/bm25/" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "collection_name": "nonexistent_collection",
+    "query_text": "test query"
+  }'
+```
+
+**预期响应 (404 Not Found)**:
+```json
+{
+  "error": "Collection 'nonexistent_collection' not found"
+}
+```
+
+#### 22.2 空 query_text
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/milvus/search/bm25/" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "collection_name": "documents",
+    "query_text": ""
+  }'
+```
+
+**预期响应 (400 Bad Request)**:
+```json
+{
+  "query_text": ["This field may not be blank."]
+}
+```
+
+**Status**: [x] PASS
+
+---
+
+## API 端点更新
+
+### 新增 Search Endpoints
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/api/v1/milvus/search/bm25/` | BM25 sparse vector 搜索 | Yes (JWT) |
+
+### Hybrid Search 参数更新
+
+| 参数 | 类型 | 默认值 | 描述 |
+|------|------|--------|------|
+| include_sparse | boolean | false | 是否包含 BM25 sparse 搜索 |
+
+---
+
+## 测试数据准备（BM25）
+
+### Python 脚本生成 BM25 测试数据
+
+```python
+import numpy as np
+import json
+
+def generate_bm25_test_data():
+    """Generate test data for BM25 search testing."""
+    documents = [
+        {
+            "pk": "bm25-test-001",
+            "text": "Milvus 是一个高性能的向量数据库，支持混合检索和 BM25 搜索。Milvus 提供了强大的向量相似度搜索能力。",
+            "summary": "Milvus 向量数据库简介",
+            "document": "Milvus 向量数据库技术文档",
+            "source": "test",
+            "source_name": "bm25_integration_test",
+            "lt_doc_id": "doc-test-001",
+            "chunk_id": 0,
+            "summary_dense": np.random.rand(1536).tolist(),
+            "text_dense": np.random.rand(1536).tolist(),
+        },
+        {
+            "pk": "bm25-test-002",
+            "text": "BM25 是一种基于概率检索模型的排序函数，广泛用于信息检索系统。BM25 考虑了词频和文档长度归一化。",
+            "summary": "BM25 算法介绍",
+            "document": "BM25 技术文档",
+            "source": "test",
+            "source_name": "bm25_integration_test",
+            "lt_doc_id": "doc-test-002",
+            "chunk_id": 0,
+            "summary_dense": np.random.rand(1536).tolist(),
+            "text_dense": np.random.rand(1536).tolist(),
+        },
+        {
+            "pk": "bm25-test-003",
+            "text": "混合检索结合了向量相似度搜索和关键词匹配，提供更准确的检索结果。RRF 用于融合多种检索结果。",
+            "summary": "混合检索技术",
+            "document": "混合检索技术文档",
+            "source": "test",
+            "source_name": "bm25_integration_test",
+            "lt_doc_id": "doc-test-003",
+            "chunk_id": 0,
+            "summary_dense": np.random.rand(1536).tolist(),
+            "text_dense": np.random.rand(1536).tolist(),
+        },
+    ]
+    
+    return {"collection_name": "documents", "data": documents}
+
+# 生成测试数据
+test_data = generate_bm25_test_data()
+print(json.dumps(test_data, indent=2))
+```
+
+---
+
+## BM25 相关技术说明
+
+### Sparse Vector 自动生成
+
+Milvus 2.5+ 内置 BM25 Function，插入文档时自动从 `text` 字段生成 `text_sparse` sparse vector：
+
+```python
+# 插入文档（无需提供 text_sparse）
+{
+    "pk": "doc-001",
+    "text": "文档内容...",
+    "text_dense": [...],
+    # text_sparse 由 Milvus 自动生成
+}
+```
+
+### BM25 参数配置
+
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| k1 | 1.5 | 词频饱和参数 |
+| b | 0.8 | 文档长度归一化参数 |
+| RRF k | 60 | RRF 融合参数 |
+
+### 索引配置
+
+- **索引类型**: SPARSE_WAND
+- **度量类型**: BM25
+- **分词器**: 中文分词器 (chinese)
+
+---
+
+## 测试执行总结（BM25 测试）
+
+### 测试执行日期: 2026-03-11
+
+### BM25 测试结果
+
+| 测试类别 | 总数 | 通过 | 失败 |
+|---------|------|------|------|
+| BM25 搜索 | 4 | 4 | 0 |
+| 混合搜索 (Dense + Sparse) | 1 | 1 | 0 |
+| **总计** | **5** | **5** | **0** |
+
+### 关键验证点
+
+1. **BM25 搜索正确性**: 关键词匹配的文档排在首位
+2. **Sparse Vector 自动生成**: 无需手动生成，Milvus 自动处理
+3. **混合检索融合**: RRF 正确融合 dense 和 sparse 结果
+4. **错误处理**: Collection 不存在、空查询等场景正确处理
+
+---
+
+*BM25 Tests Added: 2026-03-11*

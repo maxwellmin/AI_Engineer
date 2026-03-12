@@ -17,6 +17,7 @@ from apps.milvus_database_controller.views.collection_views import (
 )
 from apps.milvus_database_controller.views.health_views import HealthView
 from apps.milvus_database_controller.views.search_views import (
+    BM25SearchView,
     DocumentSearchView,
     HybridSearchView,
     VectorSearchView,
@@ -46,6 +47,7 @@ __all__ = [
     "DeleteVectorsView",
     # Search views
     "VectorSearchView",
+    "BM25SearchView",
     "HybridSearchView",
     "DocumentSearchView",
     # Health views

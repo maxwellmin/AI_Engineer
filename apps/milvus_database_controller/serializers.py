@@ -337,6 +337,10 @@ class HybridSearchSerializer(serializers.Serializer):
         allow_null=True,
         help_text="Weights for weighted reranking (sum should be 1.0)",
     )
+    include_sparse = serializers.BooleanField(
+        default=False,
+        help_text="Whether to include BM25 sparse search in hybrid search",
+    )
 
     def validate_query_vectors(self, value: dict) -> dict:
         """Validate query vectors."""
@@ -363,6 +367,35 @@ class HybridSearchSerializer(serializers.Serializer):
                     f"Weights must sum to 1.0, got {weight_sum}"
                 )
         return value
+
+
+class BM25SearchSerializer(serializers.Serializer):
+    """Request serializer for BM25 sparse vector search."""
+
+    collection_name = serializers.CharField(
+        max_length=255,
+        help_text="Name of the collection to search",
+    )
+    query_text = serializers.CharField(
+        help_text="Query text for BM25 search",
+    )
+    top_k = serializers.IntegerField(
+        default=10,
+        min_value=1,
+        max_value=100,
+        help_text="Number of results to return",
+    )
+    filter_expr = serializers.CharField(
+        default="",
+        allow_blank=True,
+        help_text="Optional filter expression",
+    )
+    output_fields = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+        allow_null=True,
+        help_text="Fields to include in results",
+    )
 
 
 class DocumentSearchSerializer(serializers.Serializer):

@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any
 
 from django.conf import settings
 from pymilvus import MilvusClient as PyMilvusClient
+from pymilvus import AnnSearchRequest, RRFRanker, WeightedRanker
 from pymilvus import exceptions as milvus_exceptions
 
 from apps.milvus_database_controller.constants import (
@@ -678,6 +679,75 @@ class MilvusClientWrapper:
             return result
         except Exception as e:
             logger.error(f"Get failed in '{collection_name}': {e}")
+            raise
+
+    def hybrid_search(
+        self,
+        collection_name: str,
+        reqs: list[AnnSearchRequest],
+        ranker: RRFRanker | WeightedRanker,
+        limit: int = 10,
+        output_fields: list[str] | None = None,
+        **kwargs: Any,
+    ) -> list[list[dict[str, Any]]]:
+        """Perform hybrid search across multiple vector fields.
+
+        This method supports dense + sparse hybrid search using Milvus 2.5+ API.
+
+        Args:
+            collection_name: Name of the collection.
+            reqs: List of AnnSearchRequest objects for each vector field.
+                - For dense vectors: AnnSearchRequest(data=[dense_vector], anns_field="text_dense", ...)
+                - For BM25/sparse: AnnSearchRequest(data=[query_text], anns_field="text_sparse", ...)
+            ranker: Ranker for result fusion (RRFRanker or WeightedRanker).
+            limit: Number of results to return.
+            output_fields: Fields to return.
+            **kwargs: Additional parameters.
+
+        Returns:
+            Hybrid search results.
+
+        Example:
+            >>> from pymilvus import AnnSearchRequest, RRFRanker
+            >>> # Dense search request
+            >>> dense_req = AnnSearchRequest(
+            ...     data=[dense_vector],
+            ...     anns_field="text_dense",
+            ...     param={"metric_type": "COSINE", "params": {"nprobe": 10}},
+            ...     limit=10
+            ... )
+            >>> # BM25 search request (pass query text directly)
+            >>> sparse_req = AnnSearchRequest(
+            ...     data=[query_text],
+            ...     anns_field="text_sparse",
+            ...     param={"metric_type": "BM25"},
+            ...     limit=10
+            ... )
+            >>> # RRF fusion
+            >>> ranker = RRFRanker(k=100)
+            >>> results = client.hybrid_search(
+            ...     collection_name="documents",
+            ...     reqs=[dense_req, sparse_req],
+            ...     ranker=ranker,
+            ...     limit=10
+            ... )
+        """
+        self._ensure_connected()
+        try:
+            result = self._get_client().hybrid_search(
+                collection_name=collection_name,
+                reqs=reqs,
+                ranker=ranker,
+                limit=limit,
+                output_fields=output_fields,
+                **kwargs,
+            )
+            logger.debug(
+                f"Hybrid search in '{collection_name}' with {len(reqs)} requests"
+            )
+            return result
+        except Exception as e:
+            logger.error(f"Hybrid search failed in '{collection_name}': {e}")
             raise
 
     # =========================================================================

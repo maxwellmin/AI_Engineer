@@ -77,10 +77,6 @@ class CollectionManager:
         """
         collection_name = request.collection_name
 
-        # Check if collection already exists
-        if self.has_collection(collection_name):
-            raise CollectionAlreadyExistsError(collection_name)
-
         # Use provided schema or create default
         if schema is None:
             schema = get_document_collection_schema(
@@ -92,6 +88,7 @@ class CollectionManager:
             logger.info(f"Creating collection '{collection_name}' with dimension {request.dimension}")
 
             # Use create_collection_with_schema for full schema support
+            # Note: has_collection check is done inside create_collection_with_schema
             self.create_collection_with_schema(
                 collection_name=collection_name,
                 schema=schema,
@@ -131,7 +128,12 @@ class CollectionManager:
 
         try:
             # Use pymilvus CollectionSchema for complex schemas
-            from pymilvus import CollectionSchema, FieldSchema
+            from pymilvus import CollectionSchema, FieldSchema, Function, FunctionType
+
+            from apps.milvus_database_controller.constants import (
+                DEFAULT_BM25_B,
+                DEFAULT_BM25_K1,
+            )
 
             fields = []
             for field_def in schema.fields:
@@ -150,6 +152,13 @@ class CollectionManager:
                     field_kwargs["description"] = field_def.description
                 if field_def.nullable:
                     field_kwargs["nullable"] = True
+                # BM25 Function support: enable_analyzer for text field
+                if field_def.enable_analyzer:
+                    field_kwargs["enable_analyzer"] = True
+                if field_def.analyzer_params is not None:
+                    field_kwargs["analyzer_params"] = field_def.analyzer_params
+                if field_def.enable_match:
+                    field_kwargs["enable_match"] = True
 
                 fields.append(FieldSchema(**field_kwargs))
 
@@ -158,6 +167,26 @@ class CollectionManager:
                 description=description or f"Collection {collection_name}",
                 enable_dynamic_field=schema.enable_dynamic_field,
             )
+
+            # Check if schema has text_sparse field for BM25 Function
+            has_text_sparse = any(
+                field.name == FieldName.TEXT_SPARSE.value for field in schema.fields
+            )
+            has_text_with_analyzer = any(
+                field.name == FieldName.TEXT.value and field.enable_analyzer
+                for field in schema.fields
+            )
+
+            # Add BM25 Function only if both text (with analyzer) and text_sparse fields exist
+            if has_text_sparse and has_text_with_analyzer:
+                bm25_function = Function(
+                    name="bm25_text_to_sparse",
+                    function_type=FunctionType.BM25,
+                    input_field_names=[FieldName.TEXT.value],
+                    output_field_names=[FieldName.TEXT_SPARSE.value],
+                )
+                collection_schema.add_function(bm25_function)
+                logger.info("Added BM25 Function to schema")
 
             # Create collection using MilvusClient with schema
             self._client.create_collection(

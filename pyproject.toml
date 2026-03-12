@@ -52,7 +52,6 @@ mypy = "^1.4.0"
 pytest-asyncio = ">=0.21.0,<1.0.0"
 ipython = "^9.10.0"
 # 添加数据库调试和性能监控工具
-pdbpp = "^0.10.3"  # 增强版Python调试器
 pytest-cov = "^4.1.0"  # 代码覆盖率测试
 django-debug-toolbar = "^4.2.0"  # Django调试工具栏
 factory-boy = "^3.3.0"  # 测试数据工厂

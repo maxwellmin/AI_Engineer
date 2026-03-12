@@ -442,6 +442,7 @@ class MilvusService:
         rerank_method: str = "rrf",
         rrf_k: int = 60,
         weights: list[float] | None = None,
+        include_sparse: bool = False,
     ) -> HybridSearchResult:
         """Perform hybrid search across multiple vector fields.
 
@@ -455,6 +456,7 @@ class MilvusService:
             rerank_method: Reranking method ("rrf" or "weighted").
             rrf_k: RRF parameter.
             weights: Weights for weighted reranking.
+            include_sparse: Whether to include BM25 sparse search.
 
         Returns:
             HybridSearchResult with combined results.
@@ -469,8 +471,38 @@ class MilvusService:
             rerank_method=rerank_method,
             rrf_k=rrf_k,
             weights=weights,
+            include_sparse=include_sparse,
         )
         return self._search_manager.hybrid_search(request)
+
+    def bm25_search(
+        self,
+        collection_name: str,
+        query_text: str,
+        top_k: int = DEFAULT_TOP_K,
+        filter_expr: str = "",
+        output_fields: list[str] | None = None,
+    ) -> SearchResult:
+        """Perform BM25 sparse vector search.
+
+        Args:
+            collection_name: Name of the collection.
+            query_text: Query text for BM25 search.
+            top_k: Number of results.
+            filter_expr: Optional filter expression.
+            output_fields: Fields to return.
+
+        Returns:
+            SearchResult with matching items.
+        """
+        request = BM25SearchRequest(
+            collection_name=collection_name,
+            query_text=query_text,
+            top_k=top_k,
+            filter_expr=filter_expr,
+            output_fields=output_fields,
+        )
+        return self._search_manager.bm25_search(request)
 
     def search_by_document(
         self,
