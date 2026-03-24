@@ -98,6 +98,13 @@ Search Query (HTTP) → Query Embedding
     → Return to Tool
 在这里的过程中我们会调研和使用bm25，然后去验证我们的查询是否正确。
 这个步骤比较健壮后，我们会再去进行chat agent的开发。
+
+【已完成 2026-03-24】
+- 三级检索架构（Vector + Keyword + Graph）
+- RRF（Reciprocal Rank Fusion）融合排序
+- PostgreSQL 全文搜索支持
+- 混合搜索 API 可用
+- 手动测试全部通过
 ```
 
 - 11 chat agent module

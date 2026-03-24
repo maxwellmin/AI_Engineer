@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     "apps.embedding_engine",
     "apps.rag_processing",
     "apps.object_storage_controller",
+    "apps.document_rag_search",
 ]
 
 MIDDLEWARE = [
@@ -282,6 +283,58 @@ PIPELINE_CONFIG = {
     "enable_entity_extraction": True,
     "entity_confidence_threshold": 0.7,
     "max_entities_per_document": 100,
+}
+
+# =============================================================================
+# Document RAG Search Configuration
+# =============================================================================
+
+SEARCH_CONFIG = {
+    # Default parameters
+    "default_top_k": 10,
+    "default_rrf_k": 60,
+    "max_query_length": 500,
+    "min_query_length": 2,
+    # Retriever weights (for RRF fusion)
+    "retriever_weights": {
+        "vector": 0.4,
+        "keyword": 0.3,
+        "graph": 0.3,
+    },
+    # Retriever settings
+    "retrievers": {
+        "vector": {
+            "enabled": True,
+            "collection_name": "documents",
+            "anns_field": "text_dense",
+            "nprobe": 10,
+            "timeout": 10,
+        },
+        "keyword": {
+            "enabled": True,
+            "fts_config": "simple",  # PostgreSQL FTS config for mixed Chinese/English
+            "timeout": 10,
+        },
+        "graph": {
+            "enabled": True,
+            "max_depth": 2,
+            "entity_limit": 10,
+            "timeout": 15,
+        },
+    },
+    # Context expansion settings
+    "context_expansion": {
+        "enabled": False,  # Disabled by default
+        "window_size": 1,
+    },
+    # Search suggestions settings
+    "suggestions": {
+        "enabled": True,
+        "min_prefix_length": 2,
+        "limit": 5,
+    },
+    # Score thresholds
+    "min_score_threshold": 0.1,
 }
 
 # =============================================================================

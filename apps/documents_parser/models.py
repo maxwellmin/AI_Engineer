@@ -3,6 +3,7 @@ from __future__ import annotations
 import uuid
 
 from django.conf import settings
+from django.contrib.postgres.search import SearchVectorField
 from django.db import models
 
 
@@ -115,6 +116,9 @@ class DocumentChunk(models.Model):
     # For vector storage reference (populated later by embedding engine)
     vector_id = models.CharField(max_length=100, blank=True, default="")
 
+    # Full-text search vector (PostgreSQL FTS)
+    search_vector = SearchVectorField(null=True, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -122,6 +126,7 @@ class DocumentChunk(models.Model):
         indexes = [
             models.Index(fields=["document", "chunk_index"]),
             models.Index(fields=["content_hash"]),
+            models.Index(fields=["search_vector"]),
         ]
         ordering = ["chunk_index"]
 
