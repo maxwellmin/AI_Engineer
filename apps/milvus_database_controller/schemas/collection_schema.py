@@ -253,6 +253,8 @@ def create_schema_from_definition(
 class ChatHistoryCollectionSchema:
     """Schema definition for the chat_history collection.
 
+    This schema stores message embeddings for conversation history search.
+
     Attributes:
         dimension: Dimension of dense vector fields.
         enable_dynamic_field: Whether to enable dynamic fields.
@@ -265,50 +267,51 @@ class ChatHistoryCollectionSchema:
     def fields(self) -> list[FieldDefinition]:
         """Get all field definitions."""
         return [
-            # Primary key
+            # Primary key (message ID)
             FieldDefinition(
                 name=FieldName.PK.value,
                 dtype=DataType.VARCHAR,
                 is_primary=True,
                 auto_id=False,
                 max_length=256,
-                description="Primary key",
+                description="Primary key (message ID)",
             ),
-            # Text content
+            # Message content
             FieldDefinition(
-                name=FieldName.TEXT.value,
+                name=FieldName.MESSAGE.value,
                 dtype=DataType.VARCHAR,
                 max_length=65535,
                 description="Chat message content",
             ),
-            # Session and user info
+            # Message role
             FieldDefinition(
-                name="session_id",
+                name=FieldName.ROLE.value,
+                dtype=DataType.VARCHAR,
+                max_length=32,
+                description="Message role (user/assistant/system)",
+            ),
+            # Conversation and user info
+            FieldDefinition(
+                name=FieldName.CONVERSATION_ID.value,
                 dtype=DataType.VARCHAR,
                 max_length=256,
-                description="Session ID",
+                description="Conversation ID",
             ),
             FieldDefinition(
-                name="user_id",
+                name=FieldName.USER_ID.value,
                 dtype=DataType.VARCHAR,
                 max_length=256,
                 description="User ID",
             ),
-            FieldDefinition(
-                name="role",
-                dtype=DataType.VARCHAR,
-                max_length=32,
-                description="Message role (user/assistant)",
-            ),
             # Timestamp
             FieldDefinition(
-                name="timestamp",
+                name=FieldName.TIMESTAMP.value,
                 dtype=DataType.INT64,
-                description="Message timestamp",
+                description="Message timestamp (Unix timestamp)",
             ),
-            # Dense vector
+            # Dense vector (message embedding)
             FieldDefinition(
-                name=FieldName.TEXT_DENSE.value,
+                name=FieldName.EMBEDDING.value,
                 dtype=DataType.FLOAT_VECTOR,
                 dim=self.dimension,
                 description="Message embedding vector",

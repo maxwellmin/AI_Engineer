@@ -4,7 +4,21 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="73d6f8f2-f1e0-49df-a8a4-ca3703b1c06f" name="Changes" comment="feat: 实现文档 RAG 混合检索模块" />
+    <list default="true" id="73d6f8f2-f1e0-49df-a8a4-ca3703b1c06f" name="Changes" comment="feat: 实现文档 RAG 混合检索模块">
+      <change beforePath="$PROJECT_DIR$/.codebuddy/memories/progress.md" beforeDir="false" afterPath="$PROJECT_DIR$/.codebuddy/memories/progress.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/document_rag_search/retrievers/base.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/document_rag_search/retrievers/base.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/milvus_database_controller/constants.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/milvus_database_controller/constants.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/milvus_database_controller/managers/collection_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/milvus_database_controller/managers/collection_manager.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apps/milvus_database_controller/schemas/collection_schema.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/milvus_database_controller/schemas/collection_schema.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/asgi.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/asgi.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/settings/base.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/settings/base.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/settings/local.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/settings/local.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/architecture.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/architecture.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/poetry.lock" beforeDir="false" afterPath="$PROJECT_DIR$/poetry.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -58,7 +72,7 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "ai.playground.ignore.import.keys.banner.in.settings": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "phase10__search",
+    "git-widget-placeholder": "phase11__chat__agent",
     "junie.onboarding.icon.badge.shown": "true",
     "last_opened_file_path": "/Users/maxrocketman/myproject/melon",
     "node.js.detected.package.eslint": "true",

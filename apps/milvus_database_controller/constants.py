@@ -53,6 +53,14 @@ class FieldName(str, Enum):
     # Sparse vector field (BM25)
     TEXT_SPARSE = "text_sparse"
 
+    # Chat history fields
+    MESSAGE = "message"
+    ROLE = "role"
+    CONVERSATION_ID = "conversation_id"
+    USER_ID = "user_id"
+    TIMESTAMP = "timestamp"
+    EMBEDDING = "embedding"
+
 
 # =============================================================================
 # Index Names

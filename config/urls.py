@@ -36,6 +36,7 @@ urlpatterns = [
     path("api/v1/neo4j/", include("apps.neo4j_database_controller.urls")),
     path("api/v1/pipeline/", include("apps.document_pipeline_manager.urls")),
     path("api/v1/search/", include("apps.document_rag_search.urls")),
+    path("api/v1/chat/", include("apps.chat_agent.urls")),
 ]
 
 # Debug toolbar URLs (only in debug mode)

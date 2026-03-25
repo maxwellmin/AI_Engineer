@@ -270,6 +270,80 @@ if (presignedResult.is_presigned) {
 - **WebSocket close manager**: 用于处理WebSocket关闭，并返回WebSocket关闭ID。结合Django Channels，可以快速处理WebSocket关闭，并返回WebSocket关闭ID。
 - **WebSocket error manager**: 用于处理WebSocket错误，并返回WebSocket错误ID。结合Django Channels，可以快速处理WebSocket错误，并返回WebSocket错误ID。
 
+#### WebSocket JWT Authentication
+
+Django Channels 默认使用 `AuthMiddlewareStack` 进行 session 认证，但本项目使用 JWT token 认证。因此实现了自定义的 `JWTAuthMiddleware` 来支持 WebSocket 连接的 JWT 认证。
+
+**架构图**：
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    WebSocket Authentication Flow                 │
+│                                                                  │
+│  Client WebSocket Connect                                        │
+│       │                                                          │
+│       ▼                                                          │
+│  ┌─────────────────────────────────────────┐                   │
+│  │  Authorization Header or Query Param    │                   │
+│  │  - Header: Authorization: Bearer <jwt>  │                   │
+│  │  - Query: ?token=<jwt>                  │                   │
+│  └─────────────────┬───────────────────────┘                   │
+│                    │                                             │
+│                    ▼                                             │
+│  ┌─────────────────────────────────────────┐                   │
+│  │         JWTAuthMiddleware               │                   │
+│  │  1. Extract token from header/query     │                   │
+│  │  2. Validate JWT signature              │                   │
+│  │  3. Decode user_id from token           │                   │
+│  │  4. Query User from database            │                   │
+│  │  5. Set scope["user"]                   │                   │
+│  └─────────────────┬───────────────────────┘                   │
+│                    │                                             │
+│                    ▼                                             │
+│  ┌─────────────────────────────────────────┐                   │
+│  │           ChatConsumer                  │                   │
+│  │  - Access scope["user"]                 │                   │
+│  │  - Reject anonymous users               │                   │
+│  │  - Process chat messages                │                   │
+│  └─────────────────────────────────────────┘                   │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**代码位置**: `apps/chat_agent/middleware.py`
+
+**ASGI 配置** (`config/asgi.py`):
+
+```python
+from apps.chat_agent.middleware import JWTAuthMiddleware
+
+application = ProtocolTypeRouter({
+    "http": django_asgi_app,
+    "websocket": AllowedHostsOriginValidator(
+        JWTAuthMiddleware(URLRouter(websocket_urlpatterns))
+    ),
+})
+```
+
+**连接示例**：
+
+```bash
+# 使用 wscat (推荐)
+wscat -c "ws://localhost:8000/ws/chat/<conversation_id>/" \
+    -H "Authorization: Bearer <jwt_token>"
+
+# 通过 query 参数 (适用于浏览器 WebSocket API)
+const ws = new WebSocket('ws://localhost:8000/ws/chat/<conversation_id>/?token=<jwt_token>');
+```
+
+**认证流程**：
+1. 客户端在 WebSocket 连接时通过 Authorization header 或 query 参数传递 JWT token
+2. `JWTAuthMiddleware` 从 header 或 query 中提取 token
+3. 使用 `rest_framework_simplejwt.tokens.AccessToken` 验证 token 有效性
+4. 从 token payload 中提取 `user_id`
+5. 从数据库查询 User 对象并设置到 `scope["user"]`
+6. `ChatConsumer` 检查 `scope["user"]` 是否为匿名用户，拒绝匿名连接
+
 
 ## 数据流设计
 

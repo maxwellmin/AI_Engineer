@@ -409,18 +409,78 @@
 ---
 
 ### 阶段 11: chat agent module
-**状态**: ⏳ 未开始
+**状态**: ✅ 已完成
+**开始日期**: 2026-03-24
+**完成日期**: 2026-04-02
 **目标**: 基于 RAG 的 chat agent，WebSocket 实时通信
 
-**验收标准**:
-- [ ] Django Channels 配置完成
-- [ ] WebSocket Consumer 实现
-- [ ] RAG Agent 实现 (LangChain/LangGraph)
-- [ ] 流式响应功能
-- [ ] 对话历史存储
-- [ ] WebSocket 端到端测试通过
+**详细计划**: 见 `.codebuddy/plans/phase11-chat-agent-module.md`
 
-**依赖**: 阶段 10 完成
+**验收标准**:
+- [x] Django Channels 配置完成
+- [x] WebSocket Consumer 实现
+- [x] RAG Agent 实现 (LangGraph)
+- [x] 流式响应功能
+- [x] 对话历史存储
+- [x] WebSocket 端到端测试通过 (19 tests passed)
+
+**完成的子模块**:
+1. **11.1 Django Channels Configuration** ✅ - ASGI application, WebSocket routing, Redis channel layer
+2. **11.2 Data Models** ✅ - Conversation and Message models with UUID primary keys
+3. **11.3 Service Layer** ✅ - ConversationService, ContextService, LLMService
+4. **11.4 Agent Layer** ✅ - TextRAGAgent, GraphRAGAgent using LangGraph StateGraph
+5. **11.5 WebSocket Consumer** ✅ - ChatConsumer with streaming response support
+6. **11.6 REST API Endpoints** ✅ - 6 REST API endpoints for conversation management
+7. **11.7 Milvus Chat History** ✅ - chat_history collection for message embeddings
+8. **11.8 Testing** ✅ - 19 tests passed (100% pass rate)
+9. **11.9 Manual Test** ✅ - manual_test.md created
+
+**解决的问题 (4 个关键 Bug)**:
+1. **Milvus Filter Expression Bug** (2026-04-01)
+   - 问题: Milvus filter expression 语法错误
+   - 解决: 修复 filter expression 构造逻辑
+
+2. **Async Context Errors in Agent Nodes** (2026-04-01)
+   - 问题: Agent nodes 中的 async context 错误
+   - 解决: 正确处理 async context 在 LangGraph nodes 中
+
+3. **LLM Model Name Invalid** (2026-04-02)
+   - 问题: Qwen API model name 不正确
+   - 解决: 更新为正确的 model name (qwen-turbo, qwen-plus, qwen-max)
+
+4. **WebSocket accept() Called After _send_error()** (2026-04-02)
+   - 问题: WebSocket 在发送错误后调用 accept()
+   - 解决: 在 _send_error() 后直接 return，不再调用 accept()
+
+**API Endpoints**:
+- **Conversations**: POST `/api/v1/chat/conversations/`, GET `/api/v1/chat/conversations/`, GET `/api/v1/chat/conversations/{id}/`, DELETE `/api/v1/chat/conversations/{id}/`
+- **Messages**: GET `/api/v1/chat/conversations/{id}/messages/`, POST `/api/v1/chat/conversations/{id}/messages/` (HTTP fallback)
+- **WebSocket**: WS `/ws/chat/<conversation_id>/`
+
+**技术亮点**:
+- **LangGraph StateGraph**: 状态机模式管理对话流程 (retrieve → generate → save)
+- **Streaming Response**: 实时流式输出，token-by-token 显示
+- **Hybrid Retrieval**: 集成 SearchService 的混合检索 (Vector + Keyword + Graph)
+- **Conversation History**: Milvus chat_history collection 存储对话历史向量
+- **Multi-turn Context**: 支持多轮对话上下文检索
+- **Error Handling**: 完善的错误处理和重试机制
+
+**创建的主要文件**:
+- `apps/chat_agent/models.py` - Conversation, Message models
+- `apps/chat_agent/agents/` - BaseRAGAgent, TextRAGAgent, GraphRAGAgent, AgentState
+- `apps/chat_agent/services/` - ConversationService, ContextService, LLMService
+- `apps/chat_agent/consumers/` - ChatConsumer with streaming support
+- `apps/chat_agent/views/` - 6 REST API endpoints
+- `config/asgi.py` - ASGI application configuration
+- `config/routing.py` - WebSocket URL routing
+- `apps/chat_agent/docs/manual_test.md` - Manual test guide
+
+**修改的文件**:
+- `config/settings/base.py` - Add CHANNEL_LAYERS, CHAT_AGENT_CONFIG
+- `config/urls.py` - Include chat agent URLs
+- `apps/milvus_database_controller/services.py` - Add chat_history collection methods
+
+**依赖**: 阶段 10 完成 ✅
 
 ---
 
@@ -438,7 +498,7 @@
 - [ ] Chat Agent 测试通过
 - [ ] 性能基准测试完成
 
-**依赖**: 阶段 1-11 全部完成
+**依赖**: 阶段 1-11 全部完成 ✅
 
 ---
 
@@ -446,6 +506,7 @@
 
 | 日期 | 阶段 | 更新内容 |
 |------|------|---------|
+| 2026-04-02 | 阶段 11 | 完成 Chat Agent Module：LangGraph StateGraph agents (Text/Graph RAG)、WebSocket streaming、Conversation/Message models、6个 REST API、Milvus chat_history collection、19 tests passed (100% pass rate)。解决 4 个关键 Bug (Milvus filter expression、async context errors、LLM model name、WebSocket accept after error) |
 | 2026-03-24 | 阶段 10 | 完成 Document RAG Search Module：三级检索架构（Vector + Keyword + Graph）、RRF 融合排序、PostgreSQL 全文搜索、5个 REST API 端点、手动测试全部通过 (TC1-TC10) |
 | 2026-03-12 | 阶段 9 | 完成 Phase 9 全栈集成验证：CASI_RefGuide.pdf (14MB, 192 pages) → 597 chunks → 597 vectors (dense + sparse BM25) → 597 Neo4j nodes → 1,560 mentions。解决 6 个关键 Bug，升级 Milvus 2.5+，实现生产级功能 |
 | 2026-03-04 | 阶段 9 | 完成 document_pipeline_manager：9个子模块、PipelineExecution/Step模型、6个StepRunners、PipelineOrchestrator、PipelineService、8个REST API、MockEntityExtractor、完整测试 |

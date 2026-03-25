@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any
 
 from apps.milvus_database_controller.client import MilvusClientWrapper
 from apps.milvus_database_controller.constants import (
+    COLLECTION_CHAT_HISTORY,
     COLLECTION_DOCUMENTS,
     DEFAULT_DENSE_DIMENSION,
     FieldName,
@@ -23,7 +24,9 @@ from apps.milvus_database_controller.exceptions import (
     CollectionNotFoundError,
 )
 from apps.milvus_database_controller.schemas.collection_schema import (
+    ChatHistoryCollectionSchema,
     DocumentCollectionSchema,
+    get_chat_history_collection_schema,
     get_document_collection_schema,
 )
 
@@ -60,13 +63,14 @@ class CollectionManager:
     def create_collection(
         self,
         request: CreateCollectionRequest,
-        schema: DocumentCollectionSchema | None = None,
+        schema: DocumentCollectionSchema | ChatHistoryCollectionSchema | None = None,
     ) -> bool:
         """Create a new collection with the specified schema.
 
         Args:
             request: Collection creation request.
-            schema: Optional custom schema. If not provided, uses default.
+            schema: Optional custom schema. If not provided, uses default
+                   DocumentCollectionSchema.
 
         Returns:
             True if collection created successfully.
@@ -77,12 +81,18 @@ class CollectionManager:
         """
         collection_name = request.collection_name
 
-        # Use provided schema or create default
+        # Use provided schema or create default based on collection name
         if schema is None:
-            schema = get_document_collection_schema(
-                dimension=request.dimension,
-                enable_dynamic_field=request.enable_dynamic_field,
-            )
+            if collection_name == COLLECTION_CHAT_HISTORY:
+                schema = get_chat_history_collection_schema(
+                    dimension=request.dimension,
+                    enable_dynamic_field=request.enable_dynamic_field,
+                )
+            else:
+                schema = get_document_collection_schema(
+                    dimension=request.dimension,
+                    enable_dynamic_field=request.enable_dynamic_field,
+                )
 
         try:
             logger.info(f"Creating collection '{collection_name}' with dimension {request.dimension}")
@@ -107,7 +117,7 @@ class CollectionManager:
     def create_collection_with_schema(
         self,
         collection_name: str,
-        schema: DocumentCollectionSchema,
+        schema: DocumentCollectionSchema | ChatHistoryCollectionSchema,
         description: str = "",
     ) -> bool:
         """Create a collection with a custom schema.
@@ -169,6 +179,7 @@ class CollectionManager:
             )
 
             # Check if schema has text_sparse field for BM25 Function
+            # Only applies to DocumentCollectionSchema
             has_text_sparse = any(
                 field.name == FieldName.TEXT_SPARSE.value for field in schema.fields
             )

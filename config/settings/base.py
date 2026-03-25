@@ -62,6 +62,9 @@ INSTALLED_APPS = [
     "apps.rag_processing",
     "apps.object_storage_controller",
     "apps.document_rag_search",
+    # Django Channels
+    "channels",
+    "apps.chat_agent",
 ]
 
 MIDDLEWARE = [
@@ -125,6 +128,21 @@ CACHES = {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
         "LOCATION": REDIS_URL,
     }
+}
+
+# =============================================================================
+# Channel Layers Configuration (Django Channels)
+# =============================================================================
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [REDIS_URL],
+            "capacity": 1500,
+            "expiry": 10,
+        },
+    },
 }
 
 # =============================================================================
@@ -286,7 +304,7 @@ PIPELINE_CONFIG = {
 }
 
 # =============================================================================
-# Document RAG Search Configuration
+# Search Configuration
 # =============================================================================
 
 SEARCH_CONFIG = {
@@ -335,6 +353,35 @@ SEARCH_CONFIG = {
     },
     # Score thresholds
     "min_score_threshold": 0.1,
+}
+
+# =============================================================================
+# Chat Agent Configuration
+# =============================================================================
+
+CHAT_AGENT_CONFIG = {
+    # Agent settings
+    "default_agent_type": "text_rag",
+    "default_temperature": 0.7,
+    "default_max_tokens": 2000,
+    # Context settings
+    "max_context_tokens": 4000,
+    "history_limit": 10,
+    "search_top_k": 5,
+    # WebSocket settings
+    "websocket_heartbeat": 30,  # seconds
+    "connection_timeout": 300,  # seconds
+    # Rate limiting
+    "rate_limit": {
+        "messages_per_minute": 20,
+        "tokens_per_minute": 10000,
+    },
+    # LLM settings (reuse QWEN_CONFIG)
+    "llm": {
+        "model": QWEN_CHAT_MODEL,
+        "temperature": 0.7,
+        "max_tokens": 2000,
+    },
 }
 
 # =============================================================================
@@ -439,7 +486,7 @@ REST_FRAMEWORK = {
         "rest_framework.filters.SearchFilter",
         "rest_framework.filters.OrderingFilter",
     ],
-    "DEFAULT_SCHEMA_CLASS": "drf_yasg.generators.OpenAPISchemaGenerator",
+    "DEFAULT_SCHEMA_CLASS": "rest_framework.schemas.openapi.AutoSchema",
     "EXCEPTION_HANDLER": "core.exceptions.custom_exception_handler",
 }
 
